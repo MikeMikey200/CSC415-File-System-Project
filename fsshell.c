@@ -1,9 +1,9 @@
 /**************************************************************
-* Class:  CSC-415-0# - Fall 2022
-* Names: 
-* Student IDs:
-* GitHub Name:
-* Group Name:
+* Class: CSC-415-03 Spring 2023
+* Names: Minh Dang, Sabrina Diaz-Erazo, Trinity Godwin, Sungmu Cho
+* Student IDs: 921210261, 916931527, 918448783, 921791166
+* GitHub Name: MikeMikey200
+* Group Name: Wanna Cry
 * Project: Basic File System
 *
 * File: fsShell.c
