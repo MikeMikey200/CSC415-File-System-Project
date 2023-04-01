@@ -60,7 +60,8 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	int vcbSize = sizeof(vcb); // size of vcb
 	int vcbBlock = (vcbSize + blockSize - 1) / blockSize; // num of blocks of vcb
 	vcb *fsvcb = malloc(vcbSize);
-	//LBAread(fsvcb, vcbBlock, 0);
+	LBAread(fsvcb, vcbBlock, 0);
+	// this is to check whether vcb is already init so we don't override disk
 	if(fsvcb->signature == SIGNATURE){
 		//return 0; uncomment this whenever rootDir init is finished
 	}
@@ -106,13 +107,11 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 
 	freespace[totalBlock - 1].next = -1;
-
-	
 	
 	// initializing vcb
 	fsvcb->signature = SIGNATURE; // refer to #define above
 	fsvcb->locationFreespace = vcbBlock; // end of vcb is vcbBlock - 1
-	fsvcb->locationRootDir = vcbBlock + fatBlock; // end of rootDir is vcbBlock + fatBlock - 1
+	fsvcb->locationRootDir = vcbBlock + fatBlock; // end of freespace is vcbBlock + fatBlock - 1
 	fsvcb->blockNum = numberOfBlocks; // num of block in LBA
 	fsvcb->blockNumFree = numberOfBlocks - totalBlock; 
 	fsvcb->blockSize = blockSize; // size of each block
