@@ -37,6 +37,22 @@ typedef struct vcb {
 	uint64_t blockSize; // size of each blocks typically 512
 } vcb;
 
+// contains directory entry details
+typedef struct dirEntry {
+	char name[128]; // max char for name
+	int idOwner; // unique owner id
+	int idGroup; // unique group id
+	// uint64_t type;
+	uint64_t size; // size of file in bytes
+	// uint64_t location;
+	time_t time; // from 1900 using localtime_s
+} dirEntry;
+
+// array of directory entries
+// initial amount of directory entries => 50
+// retrieved from example value
+dirEntry arrDE[50];
+
 // contains FAT implementation
 typedef struct fat {
 	uint64_t used; // indicate 0 is free, 1 is used
@@ -123,6 +139,9 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		freespace[i].next = 0;
 	}
 
+	//sizeDE * numDE = bytes needed
+	//block size = bytes needed / 512
+	//if there is a remainder, add 1 to block size
 	uint64_t rootBlock = 1; // please fill this one with rootDir block size
 
 	/* TODO:
