@@ -53,8 +53,9 @@ uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t numberOfBlocks, uint64_
 	if (startLocation > 0){
 		while (freespace[startLocation].next != 0) {
 			startLocation = freespace[startLocation].next;
-			if (startLocation == freespace[startLocation].next)
+			if (startLocation == freespace[startLocation].next) {
 				return 0;
+			}
 		}
 		i = startLocation;
 	}
@@ -108,6 +109,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	// this is to check whether vcb is already init so we don't override disk
 	if(fsvcb->signature == SIGNATURE){
+		printf("%d\n", fsvcb->signature);
 		//return 0; uncomment this whenever rootDir init is finished
 	}
 
