@@ -24,7 +24,7 @@
 #include "fsLow.h"
 #include "mfs.h"
 
-#define SIGNATURE 1234 // please change to a value that we want
+#define SIGNATURE 2023
 
 // contains volume details
 typedef struct vcb {
@@ -42,16 +42,13 @@ typedef struct dirEntry {
 	char name[128]; // max char for name
 	int idOwner; // unique owner id
 	int idGroup; // unique group id
+	int knownFreeState; // 1 = used, 0 = unused
 	// uint64_t type;
 	uint64_t size; // size of file in bytes
 	// uint64_t location;
 	time_t time; // from 1900 using localtime_s
 } dirEntry;
 
-// array of directory entries
-// initial amount of directory entries => 50
-// retrieved from example value
-dirEntry arrDE[50];
 
 // contains FAT implementation
 typedef struct fat {
@@ -139,14 +136,24 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		freespace[i].next = 0;
 	}
 
-	//sizeDE * numDE = bytes needed
-	//block size = bytes needed / 512
-	//if there is a remainder, add 1 to block size
-	uint64_t rootBlock = 1; // please fill this one with rootDir block size
 
 	/* TODO:
 	fill in intialization of rootDir and making of rootDir here
 	*/
+	uint64_t dirEntrySize = sizeof(dirEntry); // size of directory entry
+	int numDE = 50; // number of directory entries
+	uint64_t dirEntryBlock = ((dirEntrySize * numDE) / blockSize) + 1; // num of blocks of directory entries
+	dirEntry *rootDir = malloc(dirEntryBlock * blockSize);
+
+	uint64_t rootBlock = dirEntryBlock; // please fill this one with rootDir block size
+
+	// initialize each directory entry structure to be in a known free state
+	for (int i = 0; i < numDE + 1; i++) {
+		rootDir[i].knownFreeState = 0; // 0 means a directory entry is unused
+	}
+
+	// ask the free space system for 6 blocks
+
 
 	uint64_t totalBlock = vcbBlock + fatBlock + rootBlock;
 
@@ -214,6 +221,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	// free up resources
 	free(fsvcb);
 	free(freespace);
+	free(rootDir);
 	return 0;
 	}
 	
