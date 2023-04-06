@@ -189,7 +189,11 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	LBAwrite((void *)fsvcb, vcbBlock, 0); // size of vcb usually should be smaller blockSize to be fit in a single block 
 			       	              // so we don't have to worry about vcb overflowing to multiple blocks
 	LBAwrite((void *)freespace, fatBlock, vcbBlock); // start from vcbBlock
+<<<<<<< HEAD
 	LBAwrite((void *)rootDir, rootBlock, vcbBlock + fatBlock); // start from vcbBlock + fatBlock
+=======
+	//LBAwrite((void *)rootDir, rootBlock, vcbBlock + fatBlock);
+>>>>>>> 51333cb707424c00867257a4eaf5fdf5edb8bf09
 
 	// example of how to use freespaceFindFreeBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t startLocation)
 	printf("locationFreespace: %ld\n", fsvcb->locationFreespace);
