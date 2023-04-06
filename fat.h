@@ -9,6 +9,8 @@ typedef struct fat {
 	uint64_t next; // indicate next location > 0 is location, 0 is EOF
 } fat;
 
+fat *freespace;
+
 // this is an allocation function for freespace using FAT method
 // startLocation indicate if not in freespace 0, if exist in freespace > 0
 // return an index, otherwise 0 indicate an error

@@ -1,4 +1,4 @@
-#ifndef VCB_H
+#ifndef vcb_dirEntry
 #define VCB_H
 
 #include "fsLow.h"
@@ -15,5 +15,8 @@ typedef struct vcb {
 	uint64_t blockNumFree; // num of free blocks in the freespace
 	uint64_t blockSize; // size of each blocks typically 512
 } vcb;
+
+// making this a global variable so all can reference it
+vcb *fsvcb;
 
 #endif /* VCB_H */
