@@ -1,7 +1,7 @@
 /**************************************************************
 * Class: CSC-415-03 Spring 2023
-* Names: Minh Dang, Sabrina Diaz-Erazo, Trinity Godwin, Sungmu Cho
-* Student IDs: 921210261, 916931527, 918448783, 921791166
+* Names: Minh Dang, Sabrina Diaz-Erazo, Trinity Godwin, Karma Namgyal Ghale
+* Student IDs: 921210261, 916931527, 918448783, 921425775
 * GitHub Name: MikeMikey200
 * Group Name: Wanna Cry
 * Project: Basic File System
@@ -74,10 +74,15 @@ b_io_fd b_open (char * filename, int flags)
 		
 	if (startup == 0) b_init();  //Initialize our system
 	
-	returnFd = b_getFCB();				// get our own file descriptor
-										// check for error - all used FCB's
+	// get our own file descriptor
+	returnFd = b_getFCB();				
+	// check for error - all used FCB's
+	if (returnFd == -1)
+		return -1;
 	
-	return (returnFd);						// all set
+	
+
+	return (returnFd); // all set
 	}
 
 
