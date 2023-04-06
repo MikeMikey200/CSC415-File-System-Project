@@ -116,7 +116,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	/* TODO: Add any code you need to initialize your file system. */
 	uint64_t vcbSize = sizeof(vcb); // size of vcb
 	uint64_t vcbBlock = (vcbSize + blockSize - 1) / blockSize; // num of blocks of vcb
-	vcb *fsvcb = malloc(vcbSize);
+	vcb *fsvcb = malloc(vcbBlock * blockSize);
 
 	LBAread(fsvcb, vcbBlock, 0);
 
@@ -128,32 +128,25 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	uint64_t fatSize = sizeof(fat); // size of fat
 	uint64_t fatBlock = (fatSize * numberOfBlocks + blockSize - 1) / blockSize; // num of blocks of fat
-	fat *freespace = malloc(fatSize * numberOfBlocks);
+	fat *freespace = malloc(fatBlock * fatBlock);
 
 	// initializing freespace
-	for(uint64_t i = 0; i < numberOfBlocks; i++){
+	for(uint64_t i = 0; i < numberOfBlocks + (blockSize - numberOfBlocks % blockSize); i++){
 		freespace[i].used = 0;
 		freespace[i].next = 0;
 	}
 
-
-	/* TODO:
-	fill in intialization of rootDir and making of rootDir here
-	*/
-	/*
 	uint64_t dirEntrySize = sizeof(dirEntry); // size of directory entry
 	int numDE = 50; // number of directory entries
-	uint64_t dirEntryBlock = (dirEntrySize * numDE + blockSize - 1) / blockSize; // num of blocks of directory entries
-	dirEntry *rootDir = malloc(dirEntrySize * numDE);
-	*/
+	uint64_t dirEntryBlock = ((dirEntrySize * numDE) / blockSize) + 1; // num of blocks of directory entries
+	dirEntry *rootDir = malloc(dirEntryBlock * blockSize);
 
-	uint64_t rootBlock = 1; //dirEntryBlock; // please fill this one with rootDir block size
-	/*
+	uint64_t rootBlock = dirEntryBlock; // please fill this one with rootDir block size
+
 	// initialize each directory entry structure to be in a known free state
 	for (int i = 0; i < numDE + 1; i++) {
 		rootDir[i].knownFreeState = 0; // 0 means a directory entry is unused
 	}
-	*/
 
 	// ask the free space system for 6 blocks
 
@@ -196,7 +189,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	LBAwrite((void *)fsvcb, vcbBlock, 0); // size of vcb usually should be smaller blockSize to be fit in a single block 
 			       	              // so we don't have to worry about vcb overflowing to multiple blocks
 	LBAwrite((void *)freespace, fatBlock, vcbBlock); // start from vcbBlock
-	//LBAwrite((void *)rootDir, rootBlock, vcbBlock + fatBlock); uncomment this when rootDir is finished
+	LBAwrite((void *)rootDir, rootBlock, vcbBlock + fatBlock); // start from vcbBlock + fatBlock
 
 	// example of how to use freespaceFindFreeBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t startLocation)
 	printf("locationFreespace: %ld\n", fsvcb->locationFreespace);
@@ -224,7 +217,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	// free up resources
 	free(fsvcb);
 	free(freespace);
-	//free(rootDir);
+	free(rootDir);
 	return 0;
 	}
 	
