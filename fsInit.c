@@ -23,19 +23,11 @@
 
 #include "fsLow.h"
 #include "mfs.h"
+#include "vcb.h"
+#include "fat.h"
 
-#define SIGNATURE 2023
-
-// contains volume details
-typedef struct vcb {
-	// no need location for vcb itself, it is at 0 in the LBA
-	int signature; // an integer of a magic number or a string like ELF 
-	uint64_t locationFreespace; // location of block # for free space  
-	uint64_t locationRootDir; // location of block # for root dir       
-	uint64_t blockNum; // num of block in the volume
-	uint64_t blockNumFree; // num of free blocks in the freespace
-	uint64_t blockSize; // size of each blocks typically 512
-} vcb;
+// number of directory entries
+#define INITENTRIES 50 
 
 // contains directory entry details
 typedef struct dirEntry {
@@ -44,69 +36,37 @@ typedef struct dirEntry {
 	int idGroup; // unique group id
 	int type; // like 1 = .txt, 2 = .pdf, 3 = .img, whatever
 	uint64_t size; // size of file in bytes
-	uint64_t location;
+	uint64_t location; // location of the file
 	time_t time; // from 1900 using localtime_s
 } dirEntry;
 
+// testing out parsePath
+int parsePath(char *pathname, int blockSize){
+	uint64_t dirEntrySize = sizeof(dirEntry);
+	uint64_t dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize;
+	dirEntry *rootDir = malloc(dirEntryBlock * blockSize);
+	dirEntry *entryDir = malloc(dirEntrySize);
+	// load the rootDir
+	LBAread((void *)rootDir, dirEntryBlock, fsvcb->locationRootDir);
 
-// contains FAT implementation
-typedef struct fat {
-	uint64_t used; // indicate 0 is free, 1 is used
-	uint64_t next; // indicate next location > 0 is location, 0 is EOF
-} fat;
+	char *saveptr, *token;
+	char *delim = "/";
 
-// this is an allocation function for freespace using FAT method
-// startLocation indicate if not in freespace 0, if exist in freespace > 0
-// return an index, otherwise 0 indicate an error
-uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t startLocation) {
-	uint64_t i = 0;
+	token = strtok_r(pathname, delim, &saveptr);
 
-	// mean there is an allocated file here already recursively go to freespace.next until reaches -1
-	if (startLocation > 0){
-		while (freespace[startLocation].next != 0) {
-			startLocation = freespace[startLocation].next;
-			if (startLocation == freespace[startLocation].next) {
-				return 0;
-			}
-		}
-		i = startLocation;
-	}
-	
-	for(; i < numberOfBlocks; i++) {
-		if (freespace[i].used == 0) {
-			if (startLocation != 0){
-				freespace[startLocation].next = i;
-			}
-			freespace[i].used = 1;
-			return i;
+	for(int i = 2; i < rootDir->size / dirEntrySize; i++){
+		if (strcmp(rootDir[i].name, token) == 0) {
+			
 		}
 	}
 
+	while(token != NULL){
+		
+	}
+
+	free(entryDir);
+	free(rootDir);
 	return 0;
-}
-
-// this is a release function for freespace using FAT method
-// startLocation indicate starting block# to be free, has to be > -1
-// return 1 indicate good, return 0 indicate error for startLocation
-uint64_t freespaceReleaseBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t startLocation){
-	uint64_t i;
-	uint64_t start;
-
-	// must have a start location
-	if (startLocation == 0) {
-		return 0;
-	}
-
-	while(freespace[startLocation].next != 0){
-		i = startLocation;
-		freespace[startLocation].used = 0;
-		startLocation = freespace[startLocation].next;
-		freespace[i].next = 0;
-	}
-
-	freespace[startLocation].used = 0;
-
-	return 1;
 }
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
@@ -115,28 +75,28 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	/* TODO: Add any code you need to initialize your file system. */
 	uint64_t vcbSize = sizeof(vcb); // size of vcb
 	uint64_t vcbBlock = (vcbSize + blockSize - 1) / blockSize; // num of blocks of vcb
-	vcb *fsvcb = malloc(vcbBlock * blockSize);
+	fsvcb = malloc(vcbBlock * blockSize);
 
 	LBAread(fsvcb, vcbBlock, 0);
 
 	// this is to check whether vcb is already init so we don't override disk
 	if(fsvcb->signature == SIGNATURE){
 		printf("%d\n", fsvcb->signature);
+		free(fsvcb);
 		//return 0; uncomment this whenever rootDir init is finished
 	}
 
 	uint64_t fatSize = sizeof(fat); // size of fat
 	uint64_t fatBlock = (fatSize * numberOfBlocks + blockSize - 1) / blockSize; // num of blocks of fat
-	fat *freespace = malloc(fatBlock * fatBlock);
+	fat *freespace = malloc(fatBlock * blockSize);
 
 	uint64_t dirEntrySize = sizeof(dirEntry); // size of directory entry
-	int numDE = 50; // number of directory entries
-	uint64_t dirEntryBlock = (dirEntrySize * numDE + blockSize - 1) / blockSize; // num of blocks of directory entries
+	uint64_t dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize; // num of blocks of directory entries
 	dirEntry *rootDir = malloc(dirEntryBlock * blockSize);
 
 	// initialize each directory entry structure to be in a known free state
-	for (int i = 0; i < numDE + 1; i++) {
-		rootDir[i].name[0] = '\0'; // \0 means a directory entry is unused
+	for (int i = 0; i < INITENTRIES; i++) {
+		rootDir[i].name[0] = "\0"; // \0 means a directory entry is unused
 	}
 
 	// TODO: initialize "." and ".." in rootDir[]
@@ -182,33 +142,9 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	fsvcb->blockSize = blockSize; // size of each block
 
 	// writing to disk
-	LBAwrite((void *)fsvcb, vcbBlock, 0); // size of vcb usually should be smaller blockSize to be fit in a single block 
-			       	                	  // so we don't have to worry about vcb overflowing to multiple blocks
+	LBAwrite((void *)fsvcb, vcbBlock, 0); // start from 0
 	LBAwrite((void *)freespace, fatBlock, vcbBlock); // start from vcbBlock
 	LBAwrite((void *)rootDir, dirEntryBlock, vcbBlock + fatBlock); // start from vcbBlock + fatBlock
-
-	// example of how to use freespaceFindFreeBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t startLocation)
-	printf("locationFreespace: %ld\n", fsvcb->locationFreespace);
-	printf("locationRootDir: %ld\n", fsvcb->locationRootDir);
-	uint64_t num;
-	num = freespaceFindFreeBlock(freespace, numberOfBlocks, 0);
-	printf("num: %ld\n", num);
-	printf("num %ld free.next: %ld\n", num - 1, freespace[num - 1].next);
-	num = freespaceFindFreeBlock(freespace, numberOfBlocks, num);
-	printf("num: %ld\n", num);
-	printf("num %ld free.next: %ld\n", num - 1, freespace[num - 1].next);
-	num = freespaceFindFreeBlock(freespace, numberOfBlocks, num);
-	printf("num: %ld\n", num);
-	printf("num %ld free.next: %ld\n", num - 1, freespace[num - 1].next);
-
-	// example of how to use freespaceReleaseBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t startLocation)
-	freespaceReleaseBlock(freespace, numberOfBlocks, num - 2);
-	printf("num %ld free.used: %ld\n", num - 2, freespace[num - 2].used);
-	printf("num %ld free.next: %ld\n", num - 2, freespace[num - 2].next);	
-	printf("num %ld free.used: %ld\n", num - 1, freespace[num - 1].used);
-	printf("num %ld free.next: %ld\n", num - 1, freespace[num - 1].next);
-	printf("num %ld free.used: %ld\n", num, freespace[num].used);
-	printf("num %ld free.next: %ld\n", num, freespace[num].next);
 	
 	// free up resources
 	free(fsvcb);
