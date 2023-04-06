@@ -140,17 +140,20 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	/* TODO:
 	fill in intialization of rootDir and making of rootDir here
 	*/
+	/*
 	uint64_t dirEntrySize = sizeof(dirEntry); // size of directory entry
 	int numDE = 50; // number of directory entries
-	uint64_t dirEntryBlock = ((dirEntrySize * numDE) / blockSize) + 1; // num of blocks of directory entries
-	dirEntry *rootDir = malloc(dirEntryBlock * blockSize);
+	uint64_t dirEntryBlock = (dirEntrySize * numDE + blockSize - 1) / blockSize; // num of blocks of directory entries
+	dirEntry *rootDir = malloc(dirEntrySize * numDE);
+	*/
 
-	uint64_t rootBlock = dirEntryBlock; // please fill this one with rootDir block size
-
+	uint64_t rootBlock = 1; //dirEntryBlock; // please fill this one with rootDir block size
+	/*
 	// initialize each directory entry structure to be in a known free state
 	for (int i = 0; i < numDE + 1; i++) {
 		rootDir[i].knownFreeState = 0; // 0 means a directory entry is unused
 	}
+	*/
 
 	// ask the free space system for 6 blocks
 
@@ -221,7 +224,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	// free up resources
 	free(fsvcb);
 	free(freespace);
-	free(rootDir);
+	//free(rootDir);
 	return 0;
 	}
 	
