@@ -96,7 +96,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	// initialize each directory entry structure to be in a known free state
 	for (int i = 0; i < INITENTRIES; i++) {
-		rootDir[i].name[0] = "\0"; // \0 means a directory entry is unused
+		rootDir[i].name[0] = 0; // 0 means a directory entry is unused
 	}
 
 	// TODO: initialize "." and ".." in rootDir[]
