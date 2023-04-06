@@ -42,7 +42,6 @@ typedef struct dirEntry {
 	char name[128]; // max char for name
 	int idOwner; // unique owner id
 	int idGroup; // unique group id
-	int knownFreeState; // 1 = used, 0 = unused
 	int type; // like 1 = .txt, 2 = .pdf, 3 = .img, whatever
 	uint64_t size; // size of file in bytes
 	uint64_t location;
@@ -137,7 +136,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	// initialize each directory entry structure to be in a known free state
 	for (int i = 0; i < numDE + 1; i++) {
-		rootDir[i].knownFreeState = 0; // 0 means a directory entry is unused
+		rootDir[i].name[0] = '\0'; // \0 means a directory entry is unused
 	}
 
 	// TODO: initialize "." and ".." in rootDir[]
