@@ -1,4 +1,4 @@
-#ifndef vcb_dirEntry
+#ifndef VCB_H
 #define VCB_H
 
 #include "fsLow.h"

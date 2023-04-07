@@ -14,7 +14,7 @@ typedef struct fat {
 // this is an allocation function for freespace using FAT method
 // startLocation indicate if not in freespace 0, if exist in freespace > 0
 // return an index, otherwise 0 indicate an error
-uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t startLocation) {
+uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t startLocation) {
 	uint64_t i = 0;
 
 	// mean there is an allocated file here already recursively go to freespace.next until reaches -1
@@ -29,7 +29,7 @@ uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t numberOfBlocks, uint64_
 		i = startLocation;
 	}
 	
-	for(; i < numberOfBlocks; i++) {
+	for(; i < fsvcb->blockNum; i++) {
 		if (freespace[i].used == 0) {
 			if (startLocation != 0){
 				freespace[startLocation].next = i;
@@ -45,7 +45,7 @@ uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t numberOfBlocks, uint64_
 // this is a release function for freespace using FAT method
 // startLocation indicate starting block# to be free, has to be > -1
 // return 1 indicate good, return 0 indicate error for startLocation
-uint64_t freespaceReleaseBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t startLocation){
+uint64_t freespaceReleaseBlock(fat *freespace, uint64_t startLocation){
 	uint64_t i;
 
 	// must have a start location
@@ -66,22 +66,22 @@ uint64_t freespaceReleaseBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t
 }
 
 /*
-    // example of how to use freespaceFindFreeBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t startLocation)
+    // example of how to use freespaceFindFreeBlock(fat *freespace, uint64_t startLocation)
 	printf("locationFreespace: %ld\n", fsvcb->locationFreespace);
 	printf("locationRootDir: %ld\n", fsvcb->locationRootDir);
 	uint64_t num;
-	num = freespaceFindFreeBlock(freespace, numberOfBlocks, 0);
+	num = freespaceFindFreeBlock(freespace, 0);
 	printf("num: %ld\n", num);
 	printf("num %ld free.next: %ld\n", num - 1, freespace[num - 1].next);
-	num = freespaceFindFreeBlock(freespace, numberOfBlocks, num);
+	num = freespaceFindFreeBlock(freespace, num);
 	printf("num: %ld\n", num);
 	printf("num %ld free.next: %ld\n", num - 1, freespace[num - 1].next);
-	num = freespaceFindFreeBlock(freespace, numberOfBlocks, num);
+	num = freespaceFindFreeBlock(freespace, num);
 	printf("num: %ld\n", num);
 	printf("num %ld free.next: %ld\n", num - 1, freespace[num - 1].next);
 
-	// example of how to use freespaceReleaseBlock(fat *freespace, uint64_t numberOfBlocks, uint64_t startLocation)
-	freespaceReleaseBlock(freespace, numberOfBlocks, num - 2);
+	// example of how to use freespaceReleaseBlock(fat *freespace, uint64_t startLocation)
+	freespaceReleaseBlock(freespace, num - 2);
 	printf("num %ld free.used: %ld\n", num - 2, freespace[num - 2].used);
 	printf("num %ld free.next: %ld\n", num - 2, freespace[num - 2].next);	
 	printf("num %ld free.used: %ld\n", num - 1, freespace[num - 1].used);
