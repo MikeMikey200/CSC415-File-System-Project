@@ -68,6 +68,7 @@ int parsePath(char *pathname, dirEntry *dir) {
 			// load directory
 			LBAread(entryDir, entryDir[index].size / MINBLOCKSIZE, entryDir[index].location);
 			index = 2;
+			flag = 0;
 		} else {
 			// not a directory
 			// is this the item?
