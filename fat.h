@@ -11,9 +11,18 @@ typedef struct fat {
 
 // fat *freespace;
 
-// this is an allocation function for freespace using FAT method
-// startLocation indicate if not in freespace 0, if exist in freespace > 0
-// return an index, otherwise 0 indicate an error
+/*!
+@function 	freespaceFindFreeBlock
+@abstract	find the next free block in freespace map using FAT method
+@discussion this function belong to the freespace allocation implementation by returning the next 
+			free block integer, otherwise returning 0 if it is an error or ran out of block to available
+
+@param 		freespace
+			indicate pass by reference of freespace map
+@param 		location
+			indicate the starting location of the file so that the reference of next is pointing to the new 
+			allocated file 0 indicate it doesn't belong to any file, !0 indicate it belong to a file
+*/
 uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t startLocation) {
 	uint64_t i = 0;
 
@@ -42,9 +51,22 @@ uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t startLocation) {
 	return 0;
 }
 
-// this is a release function for freespace using FAT method
-// startLocation indicate starting block# to be free, has to be > -1
-// return 1 indicate good, return 0 indicate error for startLocation
+/*!
+@function 	freespaceReleaseBlock
+@abstract 	chain release the block from the given location of the file
+@discussion	this function belong to the freespace release implementation by returning 1 indicate success
+			otherwise returning 0 if it is an error wrong input of startLocation
+			acts with a start location and continue to free all blocks 
+			until reaching freespace[i]->next == 0 indicating EOF
+
+@param 		freespace
+			indicates pass by reference of freespace map
+@param 		startLocation
+			indicate the starting location of the file so that the reference of next is pointing to the 
+			new allocated file must pass in a value !0
+			it dictate where it will release the file from a start location
+			it doesn't have to be the start of the file and can be starting from the middle or near the end of the file
+*/
 uint64_t freespaceReleaseBlock(fat *freespace, uint64_t startLocation){
 	uint64_t i;
 
@@ -65,8 +87,9 @@ uint64_t freespaceReleaseBlock(fat *freespace, uint64_t startLocation){
 	return 1;
 }
 
+// example of how to use freespaceFindFreeBlock(fat *freespace, uint64_t startLocation)
+
 /*
-    // example of how to use freespaceFindFreeBlock(fat *freespace, uint64_t startLocation)
 	printf("locationFreespace: %ld\n", fsvcb->locationFreespace);
 	printf("locationRootDir: %ld\n", fsvcb->locationRootDir);
 	uint64_t num;
