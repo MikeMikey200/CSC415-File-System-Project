@@ -9,30 +9,84 @@
 #include "vcb.h"
 #include "dir.h"
 
-// testing out parsePath
-int parsePath(char *pathname){
-	uint64_t dirEntrySize = sizeof(dirEntry);
-	dirEntry *entryDir = malloc(dirEntrySize);
+#define MAXENTRIES 100
 
-	char *saveptr, *token;
+// exist or not exist
+int parsePath(char *pathname) {
+	dirEntry *entryDir = malloc(sizeof(dirEntry) * MAXENTRIES);
+
+	char *saveptr, *token, *tokenPrev;
 	char *delim = "/";
 
+	// skipping "." and ".." folder on directory
+	int index = 2;
+
+	// load the rootDir
+	LBAread(entryDir, rootDir->size / MINBLOCKSIZE, rootDir->location);
+
 	token = strtok_r(pathname, delim, &saveptr);
-
-    // skipping "." and ".." folder on root
-	for(int i = 2; i < rootDir->size / dirEntrySize; i++){
-		if (strcmp(rootDir[i].name, token) == 0) {
-
+	while(token != NULL){
+		// ignoring if the naming of the file == directory for now
+		index = locateEntry(token, entryDir, index);
+		if (index == -1) {
+			// not exist
+			free(entryDir);
+			return -1;
+		}
+		tokenPrev = token;
+		token = strtok_r(NULL, delim, &saveptr);
+		if (entryDir[index].type == 0) {
+			// a directory
+			// is this the item?
+			if (token == NULL){
+				if (strcmp(entryDir[index].name, tokenPrev) == 0){
+					// exist
+					free(entryDir);
+					return index;
+				}
+				// not exist
+				free(entryDir);
+				return -1;
+			}
+			// load directory
+			LBAread(entryDir, entryDir[index].size / MINBLOCKSIZE, entryDir[index].location);
+			index = 2;
+		} else {
+			// not a directory
+			// is this the item?
+			if (token == NULL){
+				if (strcmp(entryDir[index].name, tokenPrev) == 0){
+					// exist
+					free(entryDir);
+					return index;
+				}
+				// not exist
+				free(entryDir);
+				return -1;
+			}
+			/*
+			if (strcmp(entryDir[index].name, token) == 0) {
+				index++;
+			}
+			*/
 		}
 	}
 
-	while(token != NULL){
-		
-	}
-
+	// not exist
 	free(entryDir);
-	free(rootDir);
-	return 0;
+	return -1;
+}
+
+// return index of the entry if found, -1 if not
+int locateEntry(char *name, dirEntry *dir, int index) {
+	int size = dir->size / sizeof(dirEntry);
+
+	for (int i = index; i < size; i++){
+		if (strcmp(entryDir[i].name, token) == 0) {
+			return i;
+		}
+	}
+	return -1;
 }
 
 #endif /* PARSEPATH_H */
