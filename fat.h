@@ -5,7 +5,7 @@
 
 /*!
 @struct 	fat
-@discussion	structure implementation of the File Allocation Table method (FAT)
+@abstract	structure implementation of the File Allocation Table method (FAT)
 
 @field		used 
 			indicate 0 is free, 1 is used
@@ -22,14 +22,15 @@ typedef struct fat {
 /*!
 @function 	freespaceFindFreeBlock
 @abstract	find the next free block in freespace map using FAT method
-@discussion this function belong to the freespace allocation implementation by returning the next 
-			free block integer, otherwise returning 0 if it is an error or ran out of block to available
 
 @param 		freespace
 			indicate pass by reference of freespace map
 @param 		location
 			indicate the starting location of the file so that the reference of next is pointing to the new 
 			allocated file 0 indicate it doesn't belong to any file, !0 indicate it belong to a file
+
+@return		the index of the next available unused block,
+			0 if none are available return
 */
 uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t startLocation) {
 	uint64_t i = 0;
@@ -62,10 +63,6 @@ uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t startLocation) {
 /*!
 @function 	freespaceReleaseBlock
 @abstract 	chain release the block from the given location of the file
-@discussion	this function belong to the freespace release implementation by returning 1 indicate success
-			otherwise returning 0 if it is an error wrong input of startLocation
-			acts with a start location and continue to free all blocks 
-			until reaching freespace[i]->next == 0 indicating EOF
 
 @param 		freespace
 			indicates pass by reference of freespace map
@@ -74,6 +71,9 @@ uint64_t freespaceFindFreeBlock(fat *freespace, uint64_t startLocation) {
 			new allocated file must pass in a value !0
 			it dictate where it will release the file from a start location
 			it doesn't have to be the start of the file and can be starting from the middle or near the end of the file
+
+@return		1 indicate successfully released, 
+			0 error input value for startLocation
 */
 uint64_t freespaceReleaseBlock(fat *freespace, uint64_t startLocation){
 	uint64_t i;

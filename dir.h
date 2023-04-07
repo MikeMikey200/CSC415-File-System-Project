@@ -9,7 +9,7 @@
 
 /*!
 @struct 	dirEntry
-@discussion contains directory entry details
+@abstract contains directory entry details
 
 @field		name
 			file name 128 max char

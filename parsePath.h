@@ -11,19 +11,31 @@
 
 #define MAXENTRIES 100
 
-// exist or not exist
-int parsePath(char *pathname) {
+/*
+@function 	parsePath
+@abstract 	take in a $pathname and parse it until last tokenized string if it exist or not in our directory
+
+@param		pathname
+			$pathname "foo\bar"
+@param		dir
+			rootDir or starting dirEntry
+
+@return		the index of the directory
+*/
+int parsePath(char *pathname, dirEntry *dir) {
 	dirEntry *entryDir = malloc(sizeof(dirEntry) * MAXENTRIES);
 
 	char *saveptr, *token, *tokenPrev;
-	char *delim = "/";
+	char *delim = "\\";
+
+	// determine if file name and directory name convention are the same
 	int flag = 0;
 
 	// skipping "." and ".." folder on directory
 	int index = 2;
 
-	// load the rootDir
-	LBAread(entryDir, rootDir->size / MINBLOCKSIZE, rootDir->location);
+	// load the initial dir
+	LBAread(entryDir, dir->size / MINBLOCKSIZE, dir->location);
 
 	token = strtok_r(pathname, delim, &saveptr);
 	while(token != NULL){
@@ -34,10 +46,12 @@ int parsePath(char *pathname) {
 			free(entryDir);
 			return -1;
 		}
+		
 		if (!flag) {
 			tokenPrev = token;
 			token = strtok_r(NULL, delim, &saveptr);
 		}
+
 		if (entryDir[index].type == 0) {
 			// a directory
 			// is this the item?
@@ -67,7 +81,6 @@ int parsePath(char *pathname) {
 				free(entryDir);
 				return -1;
 			}
-
 			// if file name and directory name are the same, skip the current file
 			if (strcmp(entryDir[index].name, tokenPrev) == 0) {
 				index++;
@@ -83,7 +96,20 @@ int parsePath(char *pathname) {
 	return -1;
 }
 
-// return index of the entry if found, -1 if not
+/*!
+@function 	locateEntry
+@abstract locate the entry using index to traverse the directory to find name
+
+@param 		name
+			indicate pass by reference of tokenized string name
+@param 		dir
+			indicate pass by reference of dirEntry object
+@param		index
+			indicate the index of the directory
+
+@return		if found return index of the entry,
+			if not return -1
+*/
 int locateEntry(char *name, dirEntry *dir, int index) {
 	int size = dir->size / sizeof(dirEntry);
 

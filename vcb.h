@@ -7,7 +7,7 @@
 
 /*!
 @struct		vcb
-@discussion	contain file's volume information, it does not contain the volume location
+@abstract	contain file's volume information, it does not contain the volume location
 			in the LBA as it is not necessary since it at block 0
 
 @field		signature
