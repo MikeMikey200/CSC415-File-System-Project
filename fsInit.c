@@ -53,21 +53,15 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		//return 0; uncomment this whenever rootDir init is finished
 	}
 
-	uint64_t fatSize = sizeof(fat); // size of fat
-	uint64_t fatBlock = (fatSize * numberOfBlocks + blockSize - 1) / blockSize; // num of blocks of fat
-	fat *freespace = malloc(fatBlock * blockSize);
-
-	uint64_t dirEntrySize = sizeof(dirEntry); // size of directory entry
+	
+	//fat *freespace = malloc(fatBlock * blockSize);
 
 	//debug
 	printf("Size of DE: %ld\n", dirEntrySize);
-
-	uint64_t dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize; // num of blocks of directory entries
 	//debug
 	printf("Number of DE blocks: %ld\n", dirEntryBlock);
 	
-	dirEntry *rootDir = malloc(dirEntryBlock * blockSize);
-
+	
 	// initialize each directory entry structure to be in a known free state
 	for (int i = 0; i < INITENTRIES; i++) {
 		rootDir[i].name[0] = '\0'; // 0 means a directory entry is unused
