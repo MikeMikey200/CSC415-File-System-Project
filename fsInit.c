@@ -91,15 +91,35 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	fat *freespace = malloc(fatBlock * blockSize);
 
 	uint64_t dirEntrySize = sizeof(dirEntry); // size of directory entry
+
+	//debug
+	printf("Size of DE: %ld\n", dirEntrySize);
+
 	uint64_t dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize; // num of blocks of directory entries
+	//debug
+	printf("Number of DE blocks: %ld\n", dirEntryBlock);
+	
 	dirEntry *rootDir = malloc(dirEntryBlock * blockSize);
 
 	// initialize each directory entry structure to be in a known free state
 	for (int i = 0; i < INITENTRIES; i++) {
-		rootDir[i].name[0] = 0; // 0 means a directory entry is unused
+		rootDir[i].name[0] = '\0'; // 0 means a directory entry is unused
 	}
 
+	// TODO: ask the freespace system for 17 blocks
+	//       returns starting block num for these 17 blocks
+	// uint64_t startBlockNumDE;
+	// startBlockNumDE = freespaceFindFreeBlock(freespace, 17, 16); // place a dummy num for last param
+
+	// debug
+	// printf("Starting block num for DE blocks: %ld\n", startBlockNumDE);
+
 	// TODO: initialize "." and ".." in rootDir[]
+	// init first directory entry
+	rootDir[0].name[0] = '.';
+
+	rootDir[1].name[0] = '.';
+	rootDir[1].name[1] = '.';
 
 	uint64_t totalBlock = vcbBlock + fatBlock + dirEntryBlock;
 
