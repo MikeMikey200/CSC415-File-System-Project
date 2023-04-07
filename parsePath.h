@@ -17,6 +17,7 @@ int parsePath(char *pathname) {
 
 	char *saveptr, *token, *tokenPrev;
 	char *delim = "/";
+	int flag = 0;
 
 	// skipping "." and ".." folder on directory
 	int index = 2;
@@ -33,8 +34,10 @@ int parsePath(char *pathname) {
 			free(entryDir);
 			return -1;
 		}
-		tokenPrev = token;
-		token = strtok_r(NULL, delim, &saveptr);
+		if (!flag) {
+			tokenPrev = token;
+			token = strtok_r(NULL, delim, &saveptr);
+		}
 		if (entryDir[index].type == 0) {
 			// a directory
 			// is this the item?
@@ -64,11 +67,14 @@ int parsePath(char *pathname) {
 				free(entryDir);
 				return -1;
 			}
-			/*
-			if (strcmp(entryDir[index].name, token) == 0) {
+
+			// if file name and directory name are the same, skip the current file
+			if (strcmp(entryDir[index].name, tokenPrev) == 0) {
 				index++;
+				flag = 1;
+			} else {
+				flag = 0;
 			}
-			*/
 		}
 	}
 
