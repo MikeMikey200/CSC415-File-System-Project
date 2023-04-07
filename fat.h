@@ -3,10 +3,18 @@
 
 #include "fsLow.h"
 
-// contains FAT implementation
+/*!
+@struct 	fat
+@discussion	structure implementation of the File Allocation Table method (FAT)
+
+@field		used 
+			indicate 0 is free, 1 is used
+@field		next
+			indicate next location !0 is location, 0 is EOF
+*/
 typedef struct fat {
-	uint64_t used; // indicate 0 is free, 1 is used
-	uint64_t next; // indicate next location > 0 is location, 0 is EOF
+	uint64_t used;
+	uint64_t next;
 } fat;
 
 // fat *freespace;

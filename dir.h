@@ -7,15 +7,34 @@
 // number of directory entries
 #define INITENTRIES 50 
 
-// contains directory entry details
+/*!
+@struct 	dirEntry
+@discussion contains directory entry details
+
+@field		name
+			file name 128 max char
+@field 		idOwner
+			unique owner id
+@field		idGroup
+			unique group id
+@field 		type
+			an arbitrary number standing for an extension
+			1 = .txt, 2 = .pdf, 3 = .img, and so on
+@field		size
+			size of the file in bytes
+@field		location
+			block location of the file
+@field		time
+			a struct that can be use to dictate time using localtime_s
+*/
 typedef struct dirEntry {
-	char name[128]; // max char for name
-	int idOwner; // unique owner id
-	int idGroup; // unique group id
-	int type; // like 1 = .txt, 2 = .pdf, 3 = .img, whatever
-	uint64_t size; // size of file in bytes
-	uint64_t location; // location of the file
-	time_t time; // from 1900 using localtime_s
+	char name[128];
+	int idOwner;
+	int idGroup;
+	int type;
+	uint64_t size;
+	uint64_t location;
+	time_t time; 
 } dirEntry;
 
 // making this a global variable so all can reference it
