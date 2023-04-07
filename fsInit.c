@@ -78,9 +78,11 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	// TODO: initialize "." and ".." in rootDir[]
 	// init first directory entry
 	rootDir[0].name[0] = '.';
+	rootDir[0].name[0] = '\n';
 
 	rootDir[1].name[0] = '.';
 	rootDir[1].name[1] = '.';
+	rootDir[0].name[2] = '\n';
 
 	fat *freespace = malloc(fatBlock * blockSize);
 
