@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "fsLow.h"
 #include "mfs.h"
@@ -77,12 +78,27 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	// TODO: initialize "." and ".." in rootDir[]
 	// init first directory entry
-	rootDir[0].name[0] = '.';
-	rootDir[0].name[1] = '\0';
+	time_t timer;
+    rootDir[0].name[0] = '.';
+    rootDir[0].name[1] = '\0';
+    rootDir[0].size = 8568;
+    rootDir[0].location = fsvcb->locationRootDir;
+    rootDir[0].idOwner = 0;
+    rootDir[0].idGroup = 0;
+    timer = time(NULL);
+    rootDir[0].time = localtime(&timer);
+    rootDir[0].type = 0; // 0 = directory
 
-	rootDir[1].name[0] = '.';
-	rootDir[1].name[1] = '.';
-	rootDir[1].name[2] = '\0';
+    rootDir[1].name[0] = '.';
+    rootDir[1].name[1] = '.';
+    rootDir[1].name[2] = '\0';
+    rootDir[1].size = 8568;
+    rootDir[1].location = fsvcb->locationRootDir;
+    rootDir[1].idOwner = 0;
+    rootDir[1].idGroup = 0;
+    timer = time(NULL);
+    rootDir[1].time = localtime(&timer);
+    rootDir[1].type = 0; // 0 = directory 
 
 	fat *freespace = malloc(fatBlock * blockSize);
 
