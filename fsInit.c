@@ -25,49 +25,7 @@
 #include "mfs.h"
 #include "vcb.h"
 #include "fat.h"
-
-// number of directory entries
-#define INITENTRIES 50 
-
-// contains directory entry details
-typedef struct dirEntry {
-	char name[128]; // max char for name
-	int idOwner; // unique owner id
-	int idGroup; // unique group id
-	int type; // like 1 = .txt, 2 = .pdf, 3 = .img, whatever
-	uint64_t size; // size of file in bytes
-	uint64_t location; // location of the file
-	time_t time; // from 1900 using localtime_s
-} dirEntry;
-
-// testing out parsePath
-int parsePath(char *pathname, int blockSize){
-	uint64_t dirEntrySize = sizeof(dirEntry);
-	uint64_t dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize;
-	dirEntry *rootDir = malloc(dirEntryBlock * blockSize);
-	dirEntry *entryDir = malloc(dirEntrySize);
-	// load the rootDir
-	LBAread((void *)rootDir, dirEntryBlock, fsvcb->locationRootDir);
-
-	char *saveptr, *token;
-	char *delim = "/";
-
-	token = strtok_r(pathname, delim, &saveptr);
-
-	for(int i = 2; i < rootDir->size / dirEntrySize; i++){
-		if (strcmp(rootDir[i].name, token) == 0) {
-			
-		}
-	}
-
-	while(token != NULL){
-		
-	}
-
-	free(entryDir);
-	free(rootDir);
-	return 0;
-}
+#include "dir.h"
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	{
@@ -75,24 +33,25 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	/* TODO: Add any code you need to initialize your file system. */
 	uint64_t vcbSize = sizeof(vcb); // size of vcb
 	uint64_t vcbBlock = (vcbSize + blockSize - 1) / blockSize; // num of blocks of vcb
+	
+	uint64_t fatSize = sizeof(fat); // size of fat
+	uint64_t fatBlock = (fatSize * numberOfBlocks + blockSize - 1) / blockSize; // num of blocks of fat
+
+	uint64_t dirEntrySize = sizeof(dirEntry); // size of directory entry
+	uint64_t dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize; // num of blocks of directory entries
+
 	fsvcb = malloc(vcbBlock * blockSize);
+	rootDir = malloc(dirEntryBlock * blockSize);
 
 	LBAread(fsvcb, vcbBlock, 0);
 
 	// this is to check whether vcb is already init so we don't override disk
 	if(fsvcb->signature == SIGNATURE){
 		printf("%d\n", fsvcb->signature);
-		free(fsvcb);
+		// load the rootDir as a global var
+		//LBAread(rootDir, dirEntryBlock, vcbBlock + fatBlock);
 		//return 0; uncomment this whenever rootDir init is finished
 	}
-
-	uint64_t fatSize = sizeof(fat); // size of fat
-	uint64_t fatBlock = (fatSize * numberOfBlocks + blockSize - 1) / blockSize; // num of blocks of fat
-	fat *freespace = malloc(fatBlock * blockSize);
-
-	uint64_t dirEntrySize = sizeof(dirEntry); // size of directory entry
-	uint64_t dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize; // num of blocks of directory entries
-	dirEntry *rootDir = malloc(dirEntryBlock * blockSize);
 
 	// initialize each directory entry structure to be in a known free state
 	for (int i = 0; i < INITENTRIES; i++) {
@@ -100,6 +59,8 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 
 	// TODO: initialize "." and ".." in rootDir[]
+
+	fat *freespace = malloc(fatBlock * blockSize);
 
 	uint64_t totalBlock = vcbBlock + fatBlock + dirEntryBlock;
 
@@ -126,9 +87,9 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 
 	freespace[totalBlock - 1].next = 0;
-
+	
 	// initializing the rest of freespace
-	for(uint64_t i = totalBlock; i < numberOfBlocks + (blockSize - numberOfBlocks % blockSize); i++){
+	for(uint64_t i = totalBlock; i < numberOfBlocks; i++){
 		freespace[i].used = 0;
 		freespace[i].next = 0;
 	}
@@ -156,5 +117,6 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	
 void exitFileSystem ()
 	{
+	// free up resources here?
 	printf ("System exiting\n");
 	}
