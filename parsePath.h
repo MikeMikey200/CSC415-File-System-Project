@@ -31,7 +31,7 @@ int parsePath(char *pathname, dirEntry *dir) {
 	// determine if file name and directory name convention are the same
 	int flag = 0;
 
-	// skipping "." and ".." folder on directory
+	// skipping "." and ".." entry on directory
 	int index = 2;
 
 	// load the initial dir
@@ -114,7 +114,7 @@ int locateEntry(char *name, dirEntry *dir, int index) {
 	int size = dir->size / sizeof(dirEntry);
 
 	for (int i = index; i < size; i++){
-		if (strcmp(entryDir[i].name, token) == 0) {
+		if (strcmp(entryDir[i].name, name) == 0) {
 			return i;
 		}
 	}
