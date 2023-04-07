@@ -54,34 +54,22 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		//return 0; uncomment this whenever rootDir init is finished
 	}
 
-	
-	//fat *freespace = malloc(fatBlock * blockSize);
-
-	//debug
-	printf("Size of DE: %ld\n", dirEntrySize);
-	//debug
-	printf("Number of DE blocks: %ld\n", dirEntryBlock);
-	
+	// debug
+	// printf("Size of DE: %ld\n", dirEntrySize);
+	// debug
+	// printf("Number of DE blocks: %ld\n", dirEntryBlock);
 	
 	// initialize each directory entry structure to be in a known free state
-	for (int i = 0; i < INITENTRIES; i++) {
-		rootDir[i].name[0] = '\0'; // 0 means a directory entry is unused
+	for (int i = 0; i < INITENTRIES + 1; i++) {
+		rootDir[i].name[0] = '\0'; // \0 means a directory entry is unused
 	}
-
-	// TODO: ask the freespace system for 17 blocks
-	//       returns starting block num for these 17 blocks
-	// uint64_t startBlockNumDE;
-	// startBlockNumDE = freespaceFindFreeBlock(freespace, 17, 16); // place a dummy num for last param
-
-	// debug
-	// printf("Starting block num for DE blocks: %ld\n", startBlockNumDE);
 
 	// TODO: initialize "." and ".." in rootDir[]
 	// init first directory entry
 	time_t timer;
     rootDir[0].name[0] = '.';
     rootDir[0].name[1] = '\0';
-    rootDir[0].size = 8568;
+    rootDir[0].size = sizeof(dirEntry) * (INITENTRIES + 1);
     rootDir[0].location = fsvcb->locationRootDir;
     rootDir[0].idOwner = 0;
     rootDir[0].idGroup = 0;
@@ -92,7 +80,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
     rootDir[1].name[0] = '.';
     rootDir[1].name[1] = '.';
     rootDir[1].name[2] = '\0';
-    rootDir[1].size = 8568;
+    rootDir[1].size = sizeof(dirEntry) * (INITENTRIES + 1);
     rootDir[1].location = fsvcb->locationRootDir;
     rootDir[1].idOwner = 0;
     rootDir[1].idGroup = 0;
