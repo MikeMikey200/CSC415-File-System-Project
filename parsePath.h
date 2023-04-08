@@ -115,7 +115,7 @@ int locateEntry(char *name, dirEntry *dir, int index) {
 	int size = dir->size / sizeof(dirEntry);
 
 	for (int i = index; i < size; i++){
-		if (strcmp(entryDir[i].name, name) == 0) {
+		if (entryDir[i].name != '\0' && strcmp(entryDir[i].name, name) == 0) {
 			return i;
 		}
 	}
