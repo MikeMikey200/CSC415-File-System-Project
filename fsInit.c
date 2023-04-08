@@ -48,10 +48,9 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	// this is to check whether vcb is already init so we don't override disk
 	if(fsvcb->signature == SIGNATURE){
-		printf("%d\n", fsvcb->signature);
 		// load the rootDir as a global var
 		LBAread(rootDir, dirEntryBlock, vcbBlock + fatBlock);
-		//return 0;
+		return 0;
 	}
 
 	// debug
