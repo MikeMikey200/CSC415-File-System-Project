@@ -34,7 +34,7 @@ typedef struct dirEntry {
 	int type;
 	uint64_t size;
 	uint64_t location;
-	struct tm* time; 
+	struct tm time; 
 } dirEntry;
 
 // making this a global variable so all can reference it

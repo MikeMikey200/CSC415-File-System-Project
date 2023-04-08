@@ -51,7 +51,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		printf("%d\n", fsvcb->signature);
 		// load the rootDir as a global var
 		LBAread(rootDir, dirEntryBlock, vcbBlock + fatBlock);
-		return 0;
+		//return 0;
 	}
 
 	// debug
@@ -73,7 +73,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
     rootDir[0].idOwner = 0;
     rootDir[0].idGroup = 0;
     timer = time(NULL);
-    rootDir[0].time = localtime(&timer);
+    localtime_r(&timer, &rootDir[0].time);
     rootDir[0].type = 0; // 0 = directory
 
 	// initialize ".."
@@ -84,8 +84,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
     rootDir[1].location = fsvcb->locationRootDir;
     rootDir[1].idOwner = 0;
     rootDir[1].idGroup = 0;
-    timer = time(NULL);
-    rootDir[1].time = localtime(&timer);
+    localtime_r(&timer, &rootDir[1].time);
     rootDir[1].type = 0; // 0 = directory 
 
 	fat *freespace = malloc(fatBlock * blockSize);
@@ -123,17 +122,17 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 	
 	// initializing vcb
-	fsvcb->signature = SIGNATURE; // refer to #define above
+	fsvcb->signature = SIGNATURE; // our magic number
 	fsvcb->locationFreespace = vcbBlock; // end of vcb is vcbBlock - 1
 	fsvcb->locationRootDir = vcbBlock + fatBlock; // end of freespace is vcbBlock + fatBlock - 1
 	fsvcb->blockNum = numberOfBlocks; // num of block in LBA
-	fsvcb->blockNumFree = numberOfBlocks - totalBlock; 
+	fsvcb->blockNumFree = numberOfBlocks - totalBlock; // num of block left available
 	fsvcb->blockSize = blockSize; // size of each block
 
 	// writing to disk
-	LBAwrite((void *)fsvcb, vcbBlock, 0); // start from 0
-	LBAwrite((void *)freespace, fatBlock, vcbBlock); // start from vcbBlock
-	LBAwrite((void *)rootDir, dirEntryBlock, vcbBlock + fatBlock); // start from vcbBlock + fatBlock
+	LBAwrite((void *)fsvcb, vcbBlock, 0); // write vcb into disk
+	LBAwrite((void *)freespace, fatBlock, vcbBlock); // write freespace into disk
+	LBAwrite((void *)rootDir, dirEntryBlock, vcbBlock + fatBlock); // write root directory into disk
 	
 	// free up resources
 	free(freespace);
