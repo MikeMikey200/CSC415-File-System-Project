@@ -50,8 +50,8 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	if(fsvcb->signature == SIGNATURE){
 		printf("%d\n", fsvcb->signature);
 		// load the rootDir as a global var
-		//LBAread(rootDir, dirEntryBlock, vcbBlock + fatBlock);
-		//return 0; uncomment this whenever rootDir init is finished
+		LBAread(rootDir, dirEntryBlock, vcbBlock + fatBlock);
+		return 0;
 	}
 
 	// debug
@@ -64,8 +64,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		rootDir[i].name[0] = '\0'; // \0 means a directory entry is unused
 	}
 
-	// TODO: initialize "." and ".." in rootDir[]
-	// init first directory entry
+	// initialize "."
 	time_t timer;
     rootDir[0].name[0] = '.';
     rootDir[0].name[1] = '\0';
@@ -77,6 +76,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
     rootDir[0].time = localtime(&timer);
     rootDir[0].type = 0; // 0 = directory
 
+	// initialize ".."
     rootDir[1].name[0] = '.';
     rootDir[1].name[1] = '.';
     rootDir[1].name[2] = '\0';
@@ -136,9 +136,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	LBAwrite((void *)rootDir, dirEntryBlock, vcbBlock + fatBlock); // start from vcbBlock + fatBlock
 	
 	// free up resources
-	free(fsvcb);
 	free(freespace);
-	free(rootDir);
 	return 0;
 	}
 	
@@ -146,5 +144,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 void exitFileSystem ()
 	{
 	// free up resources here?
+	free(fsvcb);
+	free(rootDir);
 	printf ("System exiting\n");
 	}
