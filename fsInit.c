@@ -59,7 +59,9 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	// printf("Number of DE blocks: %ld\n", dirEntryBlock);
 	
 	// initialize each directory entry structure to be in a known free state
-	for (int i = 0; i < INITENTRIES + 1; i++) {
+	int addEntry = (dirEntryBlock * blockSize - dirEntrySize * INITENTRIES) / dirEntrySize;
+	int totalEntry = INITENTRIES + addEntry;
+	for (int i = 0; i < totalEntry; i++) {
 		rootDir[i].name[0] = '\0'; // \0 means a directory entry is unused
 	}
 
@@ -67,7 +69,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	time_t timer;
     rootDir[0].name[0] = '.';
     rootDir[0].name[1] = '\0';
-    rootDir[0].size = sizeof(dirEntry) * (INITENTRIES + 1);
+    rootDir[0].size = sizeof(dirEntry) * (totalEntry);
     rootDir[0].location = fsvcb->locationRootDir;
     rootDir[0].idOwner = 0;
     rootDir[0].idGroup = 0;
@@ -79,7 +81,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
     rootDir[1].name[0] = '.';
     rootDir[1].name[1] = '.';
     rootDir[1].name[2] = '\0';
-    rootDir[1].size = sizeof(dirEntry) * (INITENTRIES + 1);
+    rootDir[1].size = sizeof(dirEntry) * (totalEntry);
     rootDir[1].location = fsvcb->locationRootDir;
     rootDir[1].idOwner = 0;
     rootDir[1].idGroup = 0;
