@@ -50,7 +50,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	if(fsvcb->signature == SIGNATURE){
 		// load the rootDir as a global var
 		LBAread(rootDir, dirEntryBlock, vcbBlock + fatBlock);
-		return 0;
+		//return 0;
 	}
 	
 	// initialize each directory entry structure to be in a known free state
