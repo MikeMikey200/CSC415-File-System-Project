@@ -50,7 +50,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	if(fsvcb->signature == SIGNATURE){
 		// load the rootDir as a global var
 		LBAread(rootDir, dirEntryBlock, vcbBlock + fatBlock);
-		return 0;
+		// return 0;
 	}
 	
 	// initialize each directory entry structure to be in a known free state
@@ -63,8 +63,8 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	time_t timer;
     rootDir[0].name[0] = '.';
     rootDir[0].name[1] = '\0';
-    rootDir[0].size = sizeof(dirEntry) * totalEntry;
-    rootDir[0].location = fsvcb->locationRootDir;
+    rootDir[0].size = dirEntrySize * totalEntry;
+    rootDir[0].location = vcbBlock + fatBlock;
     rootDir[0].idOwner = 0;
     rootDir[0].idGroup = 0;
     timer = time(NULL);
@@ -75,8 +75,8 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
     rootDir[1].name[0] = '.';
     rootDir[1].name[1] = '.';
     rootDir[1].name[2] = '\0';
-    rootDir[1].size = sizeof(dirEntry) * totalEntry;
-    rootDir[1].location = fsvcb->locationRootDir;
+    rootDir[1].size = dirEntrySize * totalEntry;
+    rootDir[1].location = vcbBlock + fatBlock;
     rootDir[1].idOwner = 0;
     rootDir[1].idGroup = 0;
     localtime_r(&timer, &rootDir[1].time);
