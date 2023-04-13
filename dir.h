@@ -38,6 +38,6 @@ typedef struct dirEntry {
 } dirEntry;
 
 // making this a global variable so all can reference it
-dirEntry *rootDir;
+extern dirEntry *rootDir;
 
 #endif /* DIR_H */

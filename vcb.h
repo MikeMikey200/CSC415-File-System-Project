@@ -33,6 +33,6 @@ typedef struct vcb {
 } vcb;
 
 // making this a global variable so all can reference it
-vcb *fsvcb;
+extern vcb *fsvcb;
 
 #endif /* VCB_H */
