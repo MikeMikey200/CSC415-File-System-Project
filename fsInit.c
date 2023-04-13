@@ -61,8 +61,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	// initialize "."
 	time_t timer;
-    rootDir[0].name[0] = '.';
-    rootDir[0].name[1] = '\0';
+    strcpy(rootDir[0].name, ".");
     rootDir[0].size = dirEntrySize * totalEntry;
     rootDir[0].location = vcbBlock + fatBlock;
     rootDir[0].idOwner = 0;
@@ -72,9 +71,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
     rootDir[0].type = 0; // 0 = directory
 
 	// initialize ".."
-    rootDir[1].name[0] = '.';
-    rootDir[1].name[1] = '.';
-    rootDir[1].name[2] = '\0';
+    strcpy(rootDir[1].name, "..");
     rootDir[1].size = dirEntrySize * totalEntry;
     rootDir[1].location = vcbBlock + fatBlock;
     rootDir[1].idOwner = 0;
