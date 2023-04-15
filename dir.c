@@ -6,7 +6,7 @@
 #include "vcb.h"
 #include "fat.h"
 
-/* unsure how this function will help us input the field for the dir */
+/* document this please */
 dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
     unsigned int dirEntrySize = sizeof(dirEntry);
     unsigned int bytesNeeded = initNumEntry * dirEntrySize;
@@ -15,7 +15,7 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
     unsigned int numEntry = bytesUsed / dirEntrySize;
     bytesNeeded = numEntry * dirEntrySize;
     dirEntry *dir = malloc(bytesUsed);
-    unsigned int startBlock = freespaceFindFreeBlock(); //freespaceAllocateBlocks
+    unsigned int startBlock = freespaceFindFreeBlock();
     freespaceAllocateBlocks(startBlock, blocksNeeded);
 
     // init each dir to unused
@@ -32,6 +32,7 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
     dir[0].size = bytesNeeded;
     dir[0].type = 0;
 
+    // initialize ".."
     // it is a rootDir
     if (parent == NULL){
         strcpy(dir[1].name, "..");
