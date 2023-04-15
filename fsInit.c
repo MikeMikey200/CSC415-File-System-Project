@@ -64,18 +64,20 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	// writing to disk
 	LBAwrite((void *)fsvcb, vcbBlock, 0); // write vcb into disk
+
+	fat * freespace = malloc(fatBlock * fsvcb->blockSize);
+	freespaceInit(freespace);
 	
 	// mark vcb on freespace map as used
-	freespaceAllocateBlocks(0, vcbBlock);
+	freespaceAllocateBlocks(freespace, 0, vcbBlock);
 
 	// mark freespace on freespace map as used
-	freespaceAllocateBlocks(vcbBlock, vcbBlock + fatBlock);
+	freespaceAllocateBlocks(freespace, vcbBlock, vcbBlock + fatBlock);
 
 	// mark rootDir on freespace map as used
-	freespaceAllocateBlocks(vcbBlock + fatBlock, totalBlock);
-	
-	// initializing the rest of freespace
-	freespaceAllocateBlocks(totalBlock, numberOfBlocks - totalBlock);
+	freespaceAllocateBlocks(freespace, vcbBlock + fatBlock, totalBlock);
+
+	LBAwrite(freespace, fatBlock, fsvcb->locationFreespace);
 
 	dirEntry * rootDir = malloc(dirEntryBlock * blockSize);
 	
@@ -109,6 +111,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	LBAwrite((void *)rootDir, dirEntryBlock, vcbBlock + fatBlock); 
 	
 	// free up resources
+	free(freespace);
 	free(rootDir);
 	return 0;
 	}
