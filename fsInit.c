@@ -23,7 +23,6 @@
 #include <time.h>
 
 #include "fsLow.h"
-#include "mfs.h"
 #include "vcb.h"
 #include "fat.h"
 #include "dir.h"
@@ -66,16 +65,18 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	LBAwrite((void *)fsvcb, vcbBlock, 0); // write vcb into disk
 
 	fat * freespace = malloc(fatBlock * fsvcb->blockSize);
+
+	// initializing freespace to 0
 	freespaceInit(freespace);
 	
 	// mark vcb on freespace map as used
 	freespaceAllocateBlocks(freespace, 0, vcbBlock);
 
 	// mark freespace on freespace map as used
-	freespaceAllocateBlocks(freespace, vcbBlock, vcbBlock + fatBlock);
+	freespaceAllocateBlocks(freespace, vcbBlock, fatBlock);
 
 	// mark rootDir on freespace map as used
-	freespaceAllocateBlocks(freespace, vcbBlock + fatBlock, totalBlock);
+	freespaceAllocateBlocks(freespace, vcbBlock + fatBlock, dirEntryBlock);
 
 	LBAwrite(freespace, fatBlock, fsvcb->locationFreespace);
 

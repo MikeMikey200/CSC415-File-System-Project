@@ -27,14 +27,18 @@ int freespaceAllocateBlocks(fat *freespace, unsigned int startLocation, unsigned
 	if (startLocation >= fsvcb->blockNum)
 		return -1;
 
+	num = freespaceFindFreeBlock(freespace);
+
 	for(i = 0; i < blockNum; i++) {
+		startLocation = num;
+		freespace[num].used = 1;
 		num = freespaceFindFreeBlock(freespace);
 		freespace[startLocation].next = num;
-		freespace[startLocation].used = 1;
-		startLocation = num;
 	}
 
-	return i + 1;
+	freespace[startLocation].next = 0;
+
+	return i - 1;
 }
 
 int freespaceReleaseBlocks(fat *freespace, unsigned int startLocation) {
@@ -49,14 +53,14 @@ int freespaceReleaseBlocks(fat *freespace, unsigned int startLocation) {
 	for(i = startLocation; freespace[i].next != 0;) {
 		num = i;
 		i = freespace[i].next;
-		if (num != i) {
-			total++;
-		}
+		total++;
 		freespace[num].used = 0;
 		freespace[num].next = 0;
 	}	
 
-	return total;
+	freespace[i].used = 0;
+
+	return total + 1;
 }
 
 void freespaceInit(fat *freespace) {

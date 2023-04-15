@@ -38,7 +38,7 @@ int freespaceAllocateBlocks(fat *freespace, unsigned int startLocation, unsigned
 
 /*!
 @function	freespaceReleaseBlocks
-@abstract	clear
+@abstract	clear from startLocation to EOF
 @param		freespace
 			reference to the freespace map
 @param		startLocation
