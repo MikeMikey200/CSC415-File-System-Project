@@ -4,6 +4,7 @@
         "vcb.h": "c",
         "mfs.h": "c",
         "fslow.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "dir.h": "c"
     }
 }

@@ -28,7 +28,7 @@ void freespaceInit(fat *freespace);
 @param		freespace
 			reference to the freespace map
 @param		startLocation
-			the start of filelocation
+			the start of file location
 @param		blockNum
 			specify the amount of block the file need
 @return		amount of block allocated, -1 for error

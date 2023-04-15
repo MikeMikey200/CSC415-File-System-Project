@@ -78,12 +78,13 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	// mark rootDir on freespace map as used
 	freespaceAllocateBlocks(freespace, vcbBlock + fatBlock, dirEntryBlock);
 
-	LBAwrite(freespace, fatBlock, fsvcb->locationFreespace);
+	LBAwrite(freespace, fatBlock, fsvcb->locationFreespace);	
 
-	dirEntry * rootDir = malloc(dirEntryBlock * blockSize);
-	
 	// initialize each directory entry structure to be in a known free state
 	int totalEntry = INITENTRIES + ((dirEntryBlock * blockSize - dirEntrySize * INITENTRIES) / dirEntrySize);
+
+	dirEntry * rootDir = malloc(totalEntry * dirEntrySize);
+
 	for (int i = 0; i < totalEntry; i++) {
 		rootDir[i].name[0] = '\0'; // \0 means a directory entry is unused
 	}
@@ -101,12 +102,12 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	// initialize ".."
     strcpy(rootDir[1].name, "..");
-    rootDir[1].size = dirEntrySize * totalEntry;
-    rootDir[1].location = vcbBlock + fatBlock;
-    rootDir[1].idOwner = 0;
-    rootDir[1].idGroup = 0;
-    localtime_r(&timer, &rootDir[1].time);
-    rootDir[1].type = 0; // 0 = directory 
+    rootDir[1].size = rootDir[0].size;
+    rootDir[1].location = rootDir[0].location;
+    rootDir[1].idOwner = rootDir[0].idOwner;
+    rootDir[1].idGroup = rootDir[0].idGroup;
+	rootDir[1].time = rootDir[0].time;
+    rootDir[1].type = rootDir[0].type;
 
 	// write root directory into disk
 	LBAwrite((void *)rootDir, dirEntryBlock, vcbBlock + fatBlock); 
