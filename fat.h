@@ -4,7 +4,6 @@
 /*!
 @struct 	fat
 @abstract	structure implementation of the File Allocation Table method (FAT)
-
 @field		used 
 			indicate 0 is free, 1 is used
 @field		next

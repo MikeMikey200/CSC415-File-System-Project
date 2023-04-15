@@ -44,15 +44,40 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	unsigned int dirEntrySize = sizeof(dirEntry); // size of directory entry
 	unsigned int dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize; // num of blocks of directory entries
 
-	fsvcb = malloc(vcbBlock * blockSize);
-	dirEntry * rootDir = malloc(dirEntryBlock * blockSize);
+	unsigned int totalBlock = vcbBlock + fatBlock + dirEntryBlock;
 
-	LBAread(fsvcb, vcbBlock, 0);
+	fsvcb = malloc(vcbBlock * blockSize);
 
 	// this is to check whether vcb is already init so we don't override disk
+	LBAread(fsvcb, vcbBlock, 0);
 	if(fsvcb->signature == SIGNATURE){
 		// return 0;
 	}
+
+	// initializing vcb
+	fsvcb->signature = SIGNATURE; // our magic number
+	fsvcb->locationFreespace = vcbBlock; // end of vcb is vcbBlock - 1
+	fsvcb->locationRootDir = vcbBlock + fatBlock; // end of freespace is vcbBlock + fatBlock - 1
+	fsvcb->blockNum = numberOfBlocks; // num of block in LBA
+	fsvcb->blockNumFree = numberOfBlocks - totalBlock; // num of block left available
+	fsvcb->blockSize = blockSize; // size of each block
+
+	// writing to disk
+	LBAwrite((void *)fsvcb, vcbBlock, 0); // write vcb into disk
+	
+	// mark vcb on freespace map as used
+	freespaceAllocateBlocks(0, vcbBlock);
+
+	// mark freespace on freespace map as used
+	freespaceAllocateBlocks(vcbBlock, vcbBlock + fatBlock);
+
+	// mark rootDir on freespace map as used
+	freespaceAllocateBlocks(vcbBlock + fatBlock, totalBlock);
+	
+	// initializing the rest of freespace
+	freespaceAllocateBlocks(totalBlock, numberOfBlocks - totalBlock);
+
+	dirEntry * rootDir = malloc(dirEntryBlock * blockSize);
 	
 	// initialize each directory entry structure to be in a known free state
 	int totalEntry = INITENTRIES + ((dirEntryBlock * blockSize - dirEntrySize * INITENTRIES) / dirEntrySize);
@@ -80,37 +105,10 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
     localtime_r(&timer, &rootDir[1].time);
     rootDir[1].type = 0; // 0 = directory 
 
-	fat *freespace = malloc(fatBlock * blockSize);
-
-	unsigned int totalBlock = vcbBlock + fatBlock + dirEntryBlock;
-
-	// mark vcb on freespace map as used
-	freespaceAllocateBlocks(0, vcbBlock);
-
-	// mark freespace on freespace map as used
-	freespaceAllocateBlocks(vcbBlock, vcbBlock + fatBlock);
-
-	// mark rootDir on freespace map as used
-	freespaceAllocateBlocks(vcbBlock + fatBlock, totalBlock);
-	
-	// initializing the rest of freespace
-	freespaceAllocateBlocks(totalBlock, numberOfBlocks - totalBlock);
-	
-	// initializing vcb
-	fsvcb->signature = SIGNATURE; // our magic number
-	fsvcb->locationFreespace = vcbBlock; // end of vcb is vcbBlock - 1
-	fsvcb->locationRootDir = vcbBlock + fatBlock; // end of freespace is vcbBlock + fatBlock - 1
-	fsvcb->blockNum = numberOfBlocks; // num of block in LBA
-	fsvcb->blockNumFree = numberOfBlocks - totalBlock; // num of block left available
-	fsvcb->blockSize = blockSize; // size of each block
-
-	// writing to disk
-	LBAwrite((void *)fsvcb, vcbBlock, 0); // write vcb into disk
-	LBAwrite((void *)freespace, fatBlock, vcbBlock); // write freespace into disk
-	LBAwrite((void *)rootDir, dirEntryBlock, vcbBlock + fatBlock); // write root directory into disk
+	// write root directory into disk
+	LBAwrite((void *)rootDir, dirEntryBlock, vcbBlock + fatBlock); 
 	
 	// free up resources
-	free(freespace);
 	free(rootDir);
 	return 0;
 	}
