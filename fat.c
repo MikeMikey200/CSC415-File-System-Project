@@ -1,16 +1,10 @@
+#include <stdlib.h>
+
+#include "fsLow.h"
 #include "fat.h"
 #include "vcb.h"
 
-/*!
-@function 	freespaceFindFreeBlock
-@abstract	freespaceAllocateBlocks helper function
-			find the next free block in the freespace map
-@param 		freespace
-			reference to the freespace map
-@return		the index of the next available unused block,
-			0 if none are available return
-*/
-unsigned int freespaceFindFreeBlock(fat *freespace) {
+unsigned int freespaceFindFreeBlock() {
 	for(unsigned int i = 0; i < fsvcb->blockNum; i++) {
 		if (freespace[i].used == 0) {
 			return i;
@@ -20,7 +14,7 @@ unsigned int freespaceFindFreeBlock(fat *freespace) {
 	return 0;
 }
 
-int freespaceAllocateBlocks(fat *freespace, unsigned int startLocation, unsigned int blockNum) {
+int freespaceAllocateBlocks(unsigned int startLocation, unsigned int blockNum) {
 	unsigned int num;
 	unsigned int i;
 
@@ -37,11 +31,15 @@ int freespaceAllocateBlocks(fat *freespace, unsigned int startLocation, unsigned
 	}
 
 	freespace[startLocation].next = 0;
+	fsvcb->blockNumFree -= i - 1;
+
+	LBAwrite(fsvcb, fsvcb->locationFreespace, 0);
+	LBAwrite(freespace, fsvcb->locationRootDir - fsvcb->locationFreespace, fsvcb->locationFreespace);
 
 	return i - 1;
 }
 
-int freespaceReleaseBlocks(fat *freespace, unsigned int startLocation) {
+int freespaceReleaseBlocks(unsigned int startLocation) {
 	unsigned int num;
 	unsigned int i;
 	unsigned int total = 0;
@@ -59,11 +57,15 @@ int freespaceReleaseBlocks(fat *freespace, unsigned int startLocation) {
 	}	
 
 	freespace[i].used = 0;
+	fsvcb->blockNumFree += total + 1;
+
+	LBAwrite(fsvcb, fsvcb->locationFreespace, 0);
+	LBAwrite(freespace, fsvcb->locationRootDir - fsvcb->locationFreespace, fsvcb->locationFreespace);
 
 	return total + 1;
 }
 
-void freespaceInit(fat *freespace) {
+void freespaceInit() {
 	for (unsigned int i = 0; i < fsvcb->blockNum; i++){
 		freespace[i].next = 0;
 		freespace[i].used = 0;

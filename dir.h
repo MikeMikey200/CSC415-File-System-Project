@@ -36,4 +36,9 @@ typedef struct dirEntry {
 	struct tm time; 
 } dirEntry;
 
+extern dirEntry *rootDir;
+
+// prototypes
+dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent);
+
 #endif /* DIR_H */

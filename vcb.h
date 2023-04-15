@@ -2,6 +2,7 @@
 #define VCB_H
 
 #define SIGNATURE 2023
+#define BLOCK(s, n, b) ((s * n + b - 1) / b)
 
 /*!
 @struct		vcb

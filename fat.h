@@ -14,6 +14,8 @@ typedef struct fat {
 	unsigned int next;
 } fat;
 
+extern fat *freespace;
+
 // prototypes
 /*!
 @function 	freespaceInit
@@ -21,7 +23,18 @@ typedef struct fat {
 			reference to the freespace map
 @return 	nothing
 */
-void freespaceInit(fat *freespace);
+void freespaceInit();
+
+/*!
+@function 	freespaceFindFreeBlock
+@abstract	freespaceAllocateBlocks helper function
+			find the next free block in the freespace map
+@param 		freespace
+			reference to the freespace map
+@return		the index of the next available unused block,
+			0 if none are available return
+*/
+unsigned int freespaceFindFreeBlock();
 
 /*!
 @function 	freespaceAllocateBlocks
@@ -34,7 +47,7 @@ void freespaceInit(fat *freespace);
 @return		amount of block allocated, -1 for error
 
 */
-int freespaceAllocateBlocks(fat *freespace, unsigned int startLocation, unsigned int blockNum);
+int freespaceAllocateBlocks(unsigned int startLocation, unsigned int blockNum);
 
 /*!
 @function	freespaceReleaseBlocks
@@ -45,6 +58,6 @@ int freespaceAllocateBlocks(fat *freespace, unsigned int startLocation, unsigned
 			given file location
 @return		amount of block released, -1 for error
 */
-int freespaceReleaseBlocks(fat *freespace, unsigned int startLocation);
+int freespaceReleaseBlocks(unsigned int startLocation);
 
 #endif /* FAT_H */

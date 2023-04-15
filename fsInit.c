@@ -28,20 +28,22 @@
 #include "dir.h"
 
 /* extern definitions */
-vcb * fsvcb;
+vcb *fsvcb;
+fat *freespace;
+dirEntry *rootDir;
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	{
 	printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
 	/* TODO: Add any code you need to initialize your file system. */
 	unsigned int vcbSize = sizeof(vcb); // size of vcb
-	unsigned int vcbBlock = (vcbSize + blockSize - 1) / blockSize; // num of blocks of vcb
+	unsigned int vcbBlock = BLOCK(vcbSize, 1, blockSize); // num of blocks of vcb
 	
 	unsigned int fatSize = sizeof(fat); // size of fat
-	unsigned int fatBlock = (fatSize * numberOfBlocks + blockSize - 1) / blockSize; // num of blocks of fat
+	unsigned int fatBlock = BLOCK(fatSize, numberOfBlocks, blockSize); // num of blocks of fat
 
 	unsigned int dirEntrySize = sizeof(dirEntry); // size of directory entry
-	unsigned int dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize; // num of blocks of directory entries
+	unsigned int dirEntryBlock = (BLOCK(dirEntrySize, INITENTRIES, blockSize) * blockSize) / dirEntrySize; // num of blocks of directory entries
 
 	unsigned int totalBlock = vcbBlock + fatBlock + dirEntryBlock;
 
@@ -58,70 +60,33 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	fsvcb->locationFreespace = vcbBlock; // end of vcb is vcbBlock - 1
 	fsvcb->locationRootDir = vcbBlock + fatBlock; // end of freespace is vcbBlock + fatBlock - 1
 	fsvcb->blockNum = numberOfBlocks; // num of block in LBA
-	fsvcb->blockNumFree = numberOfBlocks - totalBlock; // num of block left available
+	fsvcb->blockNumFree = numberOfBlocks; // num of block left available
 	fsvcb->blockSize = blockSize; // size of each block
 
-	// writing to disk
 	LBAwrite((void *)fsvcb, vcbBlock, 0); // write vcb into disk
 
-	fat * freespace = malloc(fatBlock * fsvcb->blockSize);
+	freespace = malloc(fatBlock * blockSize);
 
 	// initializing freespace to 0
-	freespaceInit(freespace);
+	freespaceInit();
 	
 	// mark vcb on freespace map as used
-	freespaceAllocateBlocks(freespace, 0, vcbBlock);
+	freespaceAllocateBlocks(0, vcbBlock);
 
 	// mark freespace on freespace map as used
-	freespaceAllocateBlocks(freespace, vcbBlock, fatBlock);
+	freespaceAllocateBlocks(vcbBlock, fatBlock);
 
-	// mark rootDir on freespace map as used
-	freespaceAllocateBlocks(freespace, vcbBlock + fatBlock, dirEntryBlock);
+	rootDir = dirInit(INITENTRIES, NULL);
 
-	LBAwrite(freespace, fatBlock, fsvcb->locationFreespace);	
-
-	// initialize each directory entry structure to be in a known free state
-	int totalEntry = INITENTRIES + ((dirEntryBlock * blockSize - dirEntrySize * INITENTRIES) / dirEntrySize);
-
-	dirEntry * rootDir = malloc(totalEntry * dirEntrySize);
-
-	for (int i = 0; i < totalEntry; i++) {
-		rootDir[i].name[0] = '\0'; // \0 means a directory entry is unused
-	}
-
-	// initialize "."
-	time_t timer;
-    strcpy(rootDir[0].name, ".");
-    rootDir[0].size = dirEntrySize * totalEntry;
-    rootDir[0].location = vcbBlock + fatBlock;
-    rootDir[0].idOwner = 0;
-    rootDir[0].idGroup = 0;
-    timer = time(NULL);
-    localtime_r(&timer, &rootDir[0].time);
-    rootDir[0].type = 0; // 0 = directory
-
-	// initialize ".."
-    strcpy(rootDir[1].name, "..");
-    rootDir[1].size = rootDir[0].size;
-    rootDir[1].location = rootDir[0].location;
-    rootDir[1].idOwner = rootDir[0].idOwner;
-    rootDir[1].idGroup = rootDir[0].idGroup;
-	rootDir[1].time = rootDir[0].time;
-    rootDir[1].type = rootDir[0].type;
-
-	// write root directory into disk
-	LBAwrite((void *)rootDir, dirEntryBlock, vcbBlock + fatBlock); 
-	
-	// free up resources
-	free(freespace);
-	free(rootDir);
 	return 0;
 	}
 	
 	
 void exitFileSystem ()
 	{
-	// free up resources here?
+	// free up resources
 	free(fsvcb);
+	free(freespace);
+	free(rootDir);
 	printf ("System exiting\n");
 	}
