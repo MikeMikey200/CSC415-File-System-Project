@@ -10,6 +10,9 @@
 
 #define MAXENTRIES 100
 
+// prototypes
+int locateEntry(char *name, dirEntry *dir, int index);
+
 /*
 @function 	parsePath
 @abstract 	take in a $pathname and parse it until last tokenized string if it exist or not in our directory
@@ -35,11 +38,12 @@ int parsePath(char *pathname, dirEntry *dir) {
 
 	// load the initial dir
 	LBAread(entryDir, dir->size / fsvcb->blockSize, dir->location);
-
 	token = strtok_r(pathname, delim, &saveptr);
+	printf("%s\n", token);
 	while(token != NULL){
 		// ignoring if the naming of the file == directory for now
 		index = locateEntry(token, entryDir, index);
+		printf("%s\n", token);
 		if (index == -1) {
 			// not exist
 			free(entryDir);
@@ -114,7 +118,7 @@ int locateEntry(char *name, dirEntry *dir, int index) {
 	int size = dir->size / sizeof(dirEntry);
 
 	for (int i = index; i < size; i++){
-		if (entryDir[i].name != '\0' && strcmp(entryDir[i].name, name) == 0) {
+		if (dir[i].name[0] != '\0' && strcmp(dir[i].name, name) == 0) {
 			return i;
 		}
 	}

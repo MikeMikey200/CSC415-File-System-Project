@@ -26,6 +26,7 @@
 #include "vcb.h"
 #include "fat.h"
 #include "dir.h"
+#include "parsePath.h"
 
 /* extern definitions */
 vcb *fsvcb;
@@ -77,7 +78,26 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	freespaceAllocateBlocks(vcbBlock, fatBlock);
 
 	rootDir = dirInit(INITENTRIES, NULL);
-
+	dirEntry * dir1 = dirInit(INITENTRIES, rootDir);
+	dirEntry * dir2 = dirInit(INITENTRIES, rootDir);
+	dirEntry * dir3 = dirInit(INITENTRIES, rootDir);
+	strcpy(dir1->name, "dir1");
+	strcpy(dir2->name, "dir2");
+	strcpy(dir3->name, "dir3");
+	unsigned int index = dirFindUnusedEntry(rootDir);
+	dirEntryCopy(rootDir, dir1, index);
+	index = dirFindUnusedEntry(rootDir);
+	dirEntryCopy(rootDir, dir2, index);
+	index = dirFindUnusedEntry(rootDir);
+	dirEntryCopy(rootDir, dir3, index);
+	dirEntry * foo = dirInit(INITENTRIES, dir1);
+	strcpy(foo->name, "foo");
+	dirEntryCopy(dir1, foo, dirFindUnusedEntry(dir1));
+	dirEntry * bar = dirInit(3, foo);
+	strcpy(bar->name, "bar");
+	bar->type = 1;
+	dirEntryCopy(foo, bar, dirFindUnusedEntry(foo));
+	parsePath("dir1\foo\bar", rootDir);
 	return 0;
 	}
 	

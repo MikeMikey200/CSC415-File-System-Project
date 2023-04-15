@@ -52,3 +52,21 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
     LBAwrite(dir, blocksNeeded, startBlock);
     return dir;
 }
+
+int dirFindUnusedEntry(dirEntry *dir) {
+    unsigned int dirEntryNum = dir->size / sizeof(dirEntry);
+    for(int i = 2; i < dirEntryNum; i++){
+        if (strcmp(dir[i].name, "\0") == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void dirEntryCopy (dirEntry *dir1, dirEntry *dir2, unsigned int index) {
+    strcpy(dir1[index].name, dir2->name);
+    dir1[index].size = dir2->size;
+    dir1[index].location = dir2->location;
+    dir1[index].time = dir2->time;
+    dir1[index].type = dir2->type;
+}
