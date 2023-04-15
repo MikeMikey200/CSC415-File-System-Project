@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "fat.h": "c"
+        "fat.h": "c",
+        "vcb.h": "c",
+        "mfs.h": "c",
+        "fslow.h": "c",
+        "stdlib.h": "c",
+        "dir.h": "c"
     }
 }

@@ -2,7 +2,6 @@
 #define DIR_H
 
 #include <time.h>
-#include "fsLow.h"
 
 // number of directory entries
 #define INITENTRIES 50 
@@ -32,12 +31,14 @@ typedef struct dirEntry {
 	int idOwner;
 	int idGroup;
 	int type;
-	uint64_t size;
-	uint64_t location;
+	unsigned int size;
+	unsigned int location;
 	struct tm time; 
 } dirEntry;
 
-// making this a global variable so all can reference it
 extern dirEntry *rootDir;
+
+// prototypes
+dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent);
 
 #endif /* DIR_H */
