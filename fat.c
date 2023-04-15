@@ -1,5 +1,7 @@
+#include <stdlib.h>
 #include "fat.h"
 #include "vcb.h"
+#include "fsLow.h"
 
 /*!
 @function 	freespaceFindFreeBlock
