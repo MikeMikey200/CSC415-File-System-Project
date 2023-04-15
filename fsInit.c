@@ -63,7 +63,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	fsvcb->blockNumFree = numberOfBlocks; // num of block left available
 	fsvcb->blockSize = blockSize; // size of each block
 
-	LBAwrite((void *)fsvcb, vcbBlock, 0); // write vcb into disk
+	LBAwrite(fsvcb, vcbBlock, 0); // write vcb into disk
 
 	freespace = malloc(fatBlock * blockSize);
 

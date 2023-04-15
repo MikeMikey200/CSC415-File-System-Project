@@ -49,6 +49,6 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
         dir[1].type = parent->type;
     }
 
-    LBAwrite((void *)dir, blocksNeeded, startBlock);
+    LBAwrite(dir, blocksNeeded, startBlock);
     return dir;
 }
