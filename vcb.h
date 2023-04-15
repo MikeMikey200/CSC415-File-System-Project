@@ -1,8 +1,6 @@
 #ifndef VCB_H
 #define VCB_H
 
-#include "fsLow.h"
-
 #define SIGNATURE 2023
 
 /*!
@@ -25,11 +23,11 @@
 */
 typedef struct vcb {
 	int signature;
-	uint64_t locationFreespace;
-	uint64_t locationRootDir;    
-	uint64_t blockNum;
-	uint64_t blockNumFree;
-	uint64_t blockSize;
+	unsigned int locationFreespace;
+	unsigned int locationRootDir;    
+	unsigned int blockNum;
+	unsigned int blockNumFree;
+	unsigned int blockSize;
 } vcb;
 
 // making this a global variable so all can reference it

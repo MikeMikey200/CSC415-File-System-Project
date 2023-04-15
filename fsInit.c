@@ -28,28 +28,29 @@
 #include "fat.h"
 #include "dir.h"
 
+/* extern definitions */
+vcb * fsvcb;
+
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	{
 	printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
 	/* TODO: Add any code you need to initialize your file system. */
-	uint64_t vcbSize = sizeof(vcb); // size of vcb
-	uint64_t vcbBlock = (vcbSize + blockSize - 1) / blockSize; // num of blocks of vcb
+	unsigned int vcbSize = sizeof(vcb); // size of vcb
+	unsigned int vcbBlock = (vcbSize + blockSize - 1) / blockSize; // num of blocks of vcb
 	
-	uint64_t fatSize = sizeof(fat); // size of fat
-	uint64_t fatBlock = (fatSize * numberOfBlocks + blockSize - 1) / blockSize; // num of blocks of fat
+	unsigned int fatSize = sizeof(fat); // size of fat
+	unsigned int fatBlock = (fatSize * numberOfBlocks + blockSize - 1) / blockSize; // num of blocks of fat
 
-	uint64_t dirEntrySize = sizeof(dirEntry); // size of directory entry
-	uint64_t dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize; // num of blocks of directory entries
+	unsigned int dirEntrySize = sizeof(dirEntry); // size of directory entry
+	unsigned int dirEntryBlock = (dirEntrySize * INITENTRIES + blockSize - 1) / blockSize; // num of blocks of directory entries
 
 	fsvcb = malloc(vcbBlock * blockSize);
-	rootDir = malloc(dirEntryBlock * blockSize);
+	dirEntry * rootDir = malloc(dirEntryBlock * blockSize);
 
 	LBAread(fsvcb, vcbBlock, 0);
 
 	// this is to check whether vcb is already init so we don't override disk
 	if(fsvcb->signature == SIGNATURE){
-		// load the rootDir as a global var
-		LBAread(rootDir, dirEntryBlock, vcbBlock + fatBlock);
 		// return 0;
 	}
 	
@@ -81,37 +82,19 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	fat *freespace = malloc(fatBlock * blockSize);
 
-	uint64_t totalBlock = vcbBlock + fatBlock + dirEntryBlock;
+	unsigned int totalBlock = vcbBlock + fatBlock + dirEntryBlock;
 
 	// mark vcb on freespace map as used
-	for(uint64_t i = 0; i < vcbBlock; i++){
-		freespace[i].used = 1;
-		freespace[i].next = i + 1;
-	}
-
-	freespace[vcbBlock - 1].next = 0;
+	freespaceAllocateBlocks(0, vcbBlock);
 
 	// mark freespace on freespace map as used
-	for(uint64_t i = vcbBlock; i < vcbBlock + fatBlock; i++){
-		freespace[i].used = 1;
-		freespace[i].next = i + 1;
-	}
-
-	freespace[vcbBlock + fatBlock - 1].next = 0;
+	freespaceAllocateBlocks(vcbBlock, vcbBlock + fatBlock);
 
 	// mark rootDir on freespace map as used
-	for(uint64_t i = vcbBlock + fatBlock; i < totalBlock; i++){
-		freespace[i].used = 1;
-		freespace[i].next = i + 1;
-	}
-
-	freespace[totalBlock - 1].next = 0;
+	freespaceAllocateBlocks(vcbBlock + fatBlock, totalBlock);
 	
 	// initializing the rest of freespace
-	for(uint64_t i = totalBlock; i < numberOfBlocks; i++){
-		freespace[i].used = 0;
-		freespace[i].next = 0;
-	}
+	freespaceAllocateBlocks(totalBlock, numberOfBlocks - totalBlock);
 	
 	// initializing vcb
 	fsvcb->signature = SIGNATURE; // our magic number
@@ -128,6 +111,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	
 	// free up resources
 	free(freespace);
+	free(rootDir);
 	return 0;
 	}
 	
@@ -136,6 +120,5 @@ void exitFileSystem ()
 	{
 	// free up resources here?
 	free(fsvcb);
-	free(rootDir);
 	printf ("System exiting\n");
 	}
