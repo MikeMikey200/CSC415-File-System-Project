@@ -25,12 +25,14 @@ int locateEntry(char *name, dirEntry *dir, int index);
 /*
 @function 	parsePath
 @abstract 	take in a $pathname and parse it until last tokenized string if it exist or not in our directory
-			make sure to have the catch at MAX size
 
 @param		pathname
 			$pathname "foo\\bar"
 @param		dir
 			rootDir (absolute path) or starting dirEntry (relative path)
+@param		catch
+			the holder of found directory
+			make sure to have the catch at MAX size
 
 @return		the index of the directory
 */
