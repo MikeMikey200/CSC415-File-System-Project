@@ -83,6 +83,10 @@ void dirEntryCopy (dirEntry *destination, dirEntry *source, unsigned int index, 
 @param 		index
 			the index of the source
 */
-void dirEntryLoad(dirEntry *destination, dirEntry *source, unsigned int index);
+void dirEntryLoadIndex(dirEntry *destination, dirEntry *source, unsigned int index);
+
+void dirEntryLoad(dirEntry *destination, dirEntry *source);
+
+char *dirFindName(dirEntry *dir, unsigned int location);
 
 #endif /* DIR_H */

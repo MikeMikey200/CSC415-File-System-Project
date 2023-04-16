@@ -1,11 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "parsePath.h"
 #include "vcb.h"
 #include "fsLow.h"
 
-int parsePath(char pathname[], dirEntry *dir, dirEntry *catch) {
+int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 	dirEntry *entryDir = malloc(sizeof(dirEntry) * MAXENTRIES);
 
 	char *saveptr, *token, *tokenPrev;
@@ -45,7 +46,7 @@ int parsePath(char pathname[], dirEntry *dir, dirEntry *catch) {
 			if (token == NULL){
 				if (strcmp(entryDir[index].name, tokenPrev) == 0){
 					// exist
-					dirEntryLoad(catch, entryDir, index);
+					dirEntryLoadIndex(catch, entryDir, index);
 					free(entryDir);
 					return index;
 				}
@@ -64,7 +65,7 @@ int parsePath(char pathname[], dirEntry *dir, dirEntry *catch) {
 			if (token == NULL){
 				if (strcmp(entryDir[index].name, tokenPrev) == 0){
 					// exist
-					dirEntryLoad(catch, entryDir, index);
+					dirEntryLoadIndex(catch, entryDir, index);
 					free(entryDir);
 					return index;
 				}

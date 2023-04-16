@@ -23,6 +23,7 @@
 #include <time.h>
 
 #include "fsLow.h"
+#include "mfs.h"
 #include "vcb.h"
 #include "fat.h"
 #include "dir.h"
@@ -32,6 +33,7 @@
 vcb *fsvcb;
 fat *freespace;
 dirEntry *rootDir;
+dirEntry *currentwd;
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	{
@@ -162,6 +164,14 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	// location check
 	printf("%d\n", dir1dir1file1->location);
 	printf("%d\n", tempDir->location);
+
+	fs_setcwd("dir3\\foo2\\bar3");
+	printf("%d\n", currentwd->location);
+
+	char *str;
+	str = fs_getcwd(str, 1024);
+	printf("%s\n", str);
+
 
 	return 0;
 	}

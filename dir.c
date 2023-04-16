@@ -72,6 +72,22 @@ void dirEntryCopy (dirEntry *destination, dirEntry *source, unsigned int index, 
     LBAwrite(destination, destination->size / fsvcb->blockSize, destination->location);
 }
 
-void dirEntryLoad(dirEntry *destination, dirEntry *source, unsigned int index) {
+void dirEntryLoadIndex(dirEntry *destination, dirEntry *source, unsigned int index) {
     LBAread(destination, source[index].size / fsvcb->blockSize, source[index].location);
+}
+
+void dirEntryLoad(dirEntry *destination, dirEntry *source) {
+    LBAread(destination, source->size / fsvcb->blockSize, source->location);
+}
+
+char *dirFindName(dirEntry *dir, unsigned int location) {
+    int size = dir->size / fsvcb->blockSize;
+
+    for(int i = 0; i < size; i++) {
+        if(dir[i].location == location) {
+            return dir[i].name;
+        }
+    }
+
+    return NULL;
 }

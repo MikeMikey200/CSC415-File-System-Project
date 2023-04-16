@@ -34,6 +34,6 @@ int locateEntry(char *name, dirEntry *dir, int index);
 
 @return		the index of the directory
 */
-int parsePath(char pathname[], dirEntry *dir, dirEntry *catch);
+int parsePath(char *pathname, dirEntry *dir, dirEntry *catch);
 
 #endif /* PARSEPATH_H */
