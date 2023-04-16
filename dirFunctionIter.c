@@ -29,7 +29,12 @@ fdDir * fs_opendir(const char *pathname) {
 struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
     struct fs_diriteminfo *dirInfo = malloc(sizeof(struct fs_diriteminfo));
     dirInfo->d_reclen = sizeof(struct fs_diriteminfo);
-    dirInfo->fileType = currentwd[dirp->dirEntryPosition].type;
+    if(currentwd[dirp->dirEntryPosition].type == 0) {
+        dirInfo->fileType = DT_DIR;
+    } else {
+        dirInfo->fileType = DT_REG;
+    }
+    
     strcpy(dirInfo->d_name, currentwd[dirp->dirEntryPosition].name);
 
     while(currentwd[++dirp->dirEntryPosition].name[0] == '\0') {
