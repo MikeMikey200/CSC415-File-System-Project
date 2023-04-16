@@ -3,6 +3,8 @@
 
 #include "dir.h"
 
+#define MAXPATH 4096
+
 // prototypes
 /*!
 @function 	locateEntry

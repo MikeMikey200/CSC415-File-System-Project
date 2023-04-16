@@ -117,18 +117,8 @@ int fs_isFile(char * filename) {
 int fs_delete(char* filename) {
     int size = currentwd->size / fsvcb->blockSize;
     for (int i = 2; i < size; i++) {
-        if (strcmp(currentwd[i].name, filename) == 0) {
-            if (currentwd[i].type == 0) {
-                dirEntryLoadIndex(currentwd, currentwd, i);
-                int sizeDir = currentwd->size / fsvcb->blockSize; 
-                for (int j = 2; j < sizeDir; j++) {
-                    fs_delete(currentwd[j].name);
-                }
-                dirEntryLoadIndex(currentwd, currentwd, 1);
-                freespaceReleaseBlocks(currentwd[i].location);
-            } else {
-                freespaceReleaseBlocks(currentwd[i].location);
-            }
+        if (strcmp(currentwd[i].name, filename) == 0 && currentwd[i].type != 0) {
+            freespaceReleaseBlocks(currentwd[i].location);
             return 0;
         }
     }
@@ -138,8 +128,9 @@ int fs_delete(char* filename) {
 
 int fs_stat(const char *path, struct fs_stat *buf) {
     dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
-    char str[4096];
+    char str[MAXPATH];
     strcpy(str, path);
+    str[strlen(path)] = '\0';
 
     int index = parsePath(str, rootDir, dir);
 
