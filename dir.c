@@ -83,7 +83,7 @@ void dirEntryLoad(dirEntry *destination, dirEntry *source) {
 char *dirFindName(dirEntry *dir, unsigned int location) {
     int size = dir->size / fsvcb->blockSize;
 
-    for(int i = 0; i < size; i++) {
+    for(int i = 2; i < size; i++) {
         if(dir[i].location == location) {
             return dir[i].name;
         }

@@ -18,7 +18,8 @@ int fs_setcwd(char *pathname) {
     strcpy(str, pathname);
     str[strlen(pathname)] = '\0';
 
-    if (parsePath(str, rootDir, dir) == -1) {
+    int index = parsePath(str, rootDir, dir);
+    if (index == -1) {
         free(dir);
         return -1;
     }
@@ -26,8 +27,9 @@ int fs_setcwd(char *pathname) {
     if (currentwd != NULL) {
         free(currentwd);
     }
-    currentwd = dir;
+    dirEntryLoadIndex(currentwd, dir, index);
 
+    free(dir);
     free(str);
     return 0;
 }
@@ -36,11 +38,13 @@ char *fs_getcwd(char *pathname, size_t size) {
     if(size == 0) {
         return NULL;
     }
-
+    printf("set here\n");
     dirEntry *dir = malloc(MAXENTRIES * sizeof(dirEntry));
+    printf("set here\n");
     if (dir == NULL) {
         return NULL;
     }
+    
     dirEntryLoad(dir, currentwd);
 
     pathname = malloc(size * sizeof(char));
@@ -50,24 +54,29 @@ char *fs_getcwd(char *pathname, size_t size) {
     }
     pathname[0] = '\0';
 
-    char *str, *name;
+    char *str = malloc(sizeof(pathname));
+    str[0] = '\0';
+
+    char *name;
     unsigned int location;
 
     while(dir->location != rootDir->location) {
         location = dir->location;
         LBAread(dir, dir[1].size / fsvcb->blockSize, dir[1].location);
         name = dirFindName(dir, location);
-
+        
         strcat(pathname, "\\");
         strcat(pathname, name);
         strcat(pathname, str);
 
         strcpy(str, pathname);
         strcpy(pathname, "");
+        
     }
     strcpy(pathname, str);
 
     free(dir);
+    free(str);
     return pathname;
 }
 

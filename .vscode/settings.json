@@ -7,6 +7,7 @@
         "stdlib.h": "c",
         "dir.h": "c",
         "stdio.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "parsepath.h": "c"
     }
 }

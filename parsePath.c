@@ -44,7 +44,7 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 		if (token == NULL){
 			if (strcmp(entryDir[index].name, tokenPrev) == 0){
 				// exist
-				dirEntryLoadIndex(catch, entryDir, index);
+				dirEntryLoad(catch, entryDir);
 				free(entryDir);
 				return index;
 			}

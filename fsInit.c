@@ -51,10 +51,14 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	unsigned int totalBlock = vcbBlock + fatBlock + dirEntryBlock;
 
 	fsvcb = malloc(vcbBlock * blockSize);
+	freespace = malloc(fatBlock * blockSize);
+	currentwd = malloc(MAXENTRIES * dirEntrySize);
 
 	// this is to check whether vcb is already init so we don't override disk
 	LBAread(fsvcb, vcbBlock, 0);
 	if(fsvcb->signature == SIGNATURE){
+		// LBAread(freespace, fatBlock, vcbBlock);
+		// rootDir = malloc(dirEntryBlock * blockSize);
 		// return 0;
 	}
 
@@ -67,8 +71,6 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	fsvcb->blockSize = blockSize; // size of each block
 
 	LBAwrite(fsvcb, vcbBlock, 0); // write vcb into disk
-
-	freespace = malloc(fatBlock * blockSize);
 
 	// initializing freespace to 0
 	freespaceInit();
@@ -124,11 +126,12 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 
 	char pathname[] = "dir3\\foo2\\bar2";
-	printf("parsePath: %d\n", parsePath(pathname, rootDir, tempDir));
+	int index = parsePath(pathname, rootDir, tempDir);
+	printf("parsePath: %d\n", index);
 
 	// location check
 	printf("%d\n", bar2->location);
-	printf("%d\n", tempDir->location);
+	printf("%d\n", tempDir[index].location);
 
 	// testing parsePath for file.name == dir.name
 	dirEntry *dir1file1 = dirInit(INITENTRIES, dir1);
@@ -159,11 +162,12 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 
 	char pathname1[] = "dir1\\dir1file2\\dir1dir1file1";
-	printf("parsePath: %d\n", parsePath(pathname1, rootDir, tempDir));
+	index = parsePath(pathname1, rootDir, tempDir);
+	printf("parsePath: %d\n", index);
 
 	// location check
 	printf("%d\n", dir1dir1file1->location);
-	printf("%d\n", tempDir->location);
+	printf("%d\n", tempDir[index].location);
 
 	fs_setcwd("dir3\\foo2\\bar3");
 	printf("%d\n", currentwd->location);
@@ -171,6 +175,9 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	char *str;
 	str = fs_getcwd(str, 1024);
 	printf("%s\n", str);
+
+	fdDir * fd = fs_opendir(pathname);
+	struct fs_diriteminfo *dirInfo = fs_readdir(fd);
 
 	return 0;
 	}
@@ -182,5 +189,6 @@ void exitFileSystem ()
 	free(fsvcb);
 	free(freespace);
 	free(rootDir);
+	free(currentwd);
 	printf ("System exiting\n");
 	}
