@@ -7,7 +7,6 @@
 #include "vcb.h"
 #include "fat.h"
 
-/* document this please */
 dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
     unsigned int dirEntrySize = sizeof(dirEntry);
     unsigned int bytesNeeded = initNumEntry * dirEntrySize;
@@ -25,7 +24,6 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
     }
 
     // initialize "."
-    
     strcpy(dir[0].name, ".");
     time_t timer;
     timer = time(NULL);
@@ -65,15 +63,15 @@ int dirFindUnusedEntry(dirEntry *dir) {
     return -1;
 }
 
-void dirEntryCopy (dirEntry *dir1, dirEntry *dir2, unsigned int index, char *name) {
-    strcpy(dir1[index].name, name);
-    dir1[index].size = dir2->size;
-    dir1[index].location = dir2->location;
-    dir1[index].time = dir2->time;
-    dir1[index].type = dir2->type;
-    LBAwrite(dir1, dir1->size / fsvcb->blockSize, dir1->location);
+void dirEntryCopy (dirEntry *destination, dirEntry *source, unsigned int index, char *name) {
+    strcpy(destination[index].name, name);
+    destination[index].size = source->size;
+    destination[index].location = source->location;
+    destination[index].time = source->time;
+    destination[index].type = source->type;
+    LBAwrite(destination, destination->size / fsvcb->blockSize, destination->location);
 }
 
-void dirEntryLoad(dirEntry *dir1, dirEntry *dir2, unsigned int index) {
-    LBAread(dir1, dir2[index].size / fsvcb->blockSize, dir2[index].location);
+void dirEntryLoad(dirEntry *destination, dirEntry *source, unsigned int index) {
+    LBAread(destination, source[index].size / fsvcb->blockSize, source[index].location);
 }

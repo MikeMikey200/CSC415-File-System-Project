@@ -39,9 +39,48 @@ typedef struct dirEntry {
 extern dirEntry *rootDir;
 
 // prototypes
+/*!
+@function	dirInit
+@param		initNumEntry
+			initial amount of directory entries
+@param		parent
+			the ".." or parent of the entry, NULL if it's root
+@return		the initialized directory of "." and ".."
+*/
 dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent);
+
+/*!
+@function	dirFindUnusedEntry
+@param		dir
+			find the first instance of the available directory
+@return		the index of the available directory or -1 if none exist
+*/
 int dirFindUnusedEntry(dirEntry *dir);
-void dirEntryCopy (dirEntry *dir1, dirEntry *dir2, unsigned int index, char *name);
-void dirEntryLoad(dirEntry *dir1, dirEntry *dir2, unsigned int index);
+
+/*!
+@function 	dirEntryCopy
+@abstract 	the destination will be overriden by the source and write into disk
+@param		destination
+			the destination to be copied into
+@param		source
+			the source to be copied from
+@param 		index
+			the index of the source
+@param		name
+			name of the directory
+*/
+void dirEntryCopy (dirEntry *destination, dirEntry *source, unsigned int index, char *name);
+
+/*!
+@function 	dirEntryLoad
+@abstract	the destination will become the source
+@param		destination
+			the destination to be load into
+@param		source
+			the source to be load from
+@param 		index
+			the index of the source
+*/
+void dirEntryLoad(dirEntry *destination, dirEntry *source, unsigned int index);
 
 #endif /* DIR_H */

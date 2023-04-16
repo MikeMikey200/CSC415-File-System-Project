@@ -6,7 +6,6 @@
 #define MAXENTRIES 100
 
 // prototypes
-
 /*!
 @function 	locateEntry
 @abstract 	locate the entry using index to traverse the directory to find name
@@ -26,6 +25,7 @@ int locateEntry(char *name, dirEntry *dir, int index);
 /*
 @function 	parsePath
 @abstract 	take in a $pathname and parse it until last tokenized string if it exist or not in our directory
+			make sure to have the catch at MAX size
 
 @param		pathname
 			$pathname "foo\\bar"
