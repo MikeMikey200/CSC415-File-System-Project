@@ -86,7 +86,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	LBAread(rootDir, rootDir->size / fsvcb->blockSize, rootDir->location);
 	
 	// testing for parsePath for dir
-	dirEntry *tempDir = malloc(MAXENTRIES * dirEntrySize);
+	dirEntry *tempDir;
 
 	dirEntry *dir1 = dirInit(INITENTRIES, rootDir);
 	dirEntryCopy(rootDir, dir1, dirFindUnusedEntry(rootDir), "dir1");

@@ -40,6 +40,7 @@ char *fs_getcwd(char *pathname, size_t size) {
     }
     printf("set here\n");
     dirEntry *dir = malloc(MAXENTRIES * sizeof(dirEntry));
+    printf("%d\n", dir->location);
     printf("set here\n");
     if (dir == NULL) {
         return NULL;
@@ -88,10 +89,12 @@ int fs_isDir(char * pathname) {
 
     // check if pathname is a directory
     if (parsePath(pathname, rootDir, dir) != -1 ) {
+        free(dir);
         return 1;
     }
 
     else {
+        free(dir);
         return 0;
     }
 
