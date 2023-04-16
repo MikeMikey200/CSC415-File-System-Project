@@ -34,6 +34,7 @@ int parsePath(char pathname[], dirEntry *dir, dirEntry *catch) {
 
 		if (index == -1) {
 			// not exist
+			catch = NULL;
 			free(entryDir);
 			return -1;
 		}
@@ -49,6 +50,7 @@ int parsePath(char pathname[], dirEntry *dir, dirEntry *catch) {
 					return index;
 				}
 				// not exist
+				catch = NULL;
 				free(entryDir);
 				return -1;
 			}
@@ -67,6 +69,7 @@ int parsePath(char pathname[], dirEntry *dir, dirEntry *catch) {
 					return index;
 				}
 				// not exist
+				catch = NULL;
 				free(entryDir);
 				return -1;
 			}
@@ -81,6 +84,7 @@ int parsePath(char pathname[], dirEntry *dir, dirEntry *catch) {
 	}
 
 	// not exist
+	catch = NULL;
 	free(entryDir);
 	return -1;
 }

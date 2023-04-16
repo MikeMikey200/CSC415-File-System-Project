@@ -5,6 +5,7 @@
 
 // number of directory entries
 #define INITENTRIES 50 
+#define MAXENTRIES 100
 
 /*!
 @struct 	dirEntry
@@ -37,6 +38,7 @@ typedef struct dirEntry {
 } dirEntry;
 
 extern dirEntry *rootDir;
+extern dirEntry *currentwd;
 
 // prototypes
 /*!

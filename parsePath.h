@@ -3,8 +3,6 @@
 
 #include "dir.h"
 
-#define MAXENTRIES 100
-
 // prototypes
 /*!
 @function 	locateEntry
