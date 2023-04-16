@@ -70,3 +70,20 @@ char *fs_getcwd(char *pathname, size_t size) {
     free(dir);
     return pathname;
 }
+
+int fs_isDir(char * pathname) {
+    dirEntry *dir = malloc(MAXENTRIES * sizeof(dirEntry));
+    if (dir == NULL) {
+        return -1;
+    }
+
+    // check if pathname is a directory
+    if (parsePath(pathname, rootDir, dir) != -1 ) {
+        return 1;
+    }
+
+    else {
+        return 0;
+    }
+
+} //return 1 if directory, 0 otherwise
