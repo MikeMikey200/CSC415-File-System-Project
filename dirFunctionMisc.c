@@ -4,6 +4,7 @@
 
 #include "dir.h"
 #include "vcb.h"
+#include "fat.h"
 #include "parsePath.h"
 #include "mfs.h"
 #include "fsLow.h"
@@ -111,6 +112,18 @@ int fs_isFile(char * filename) {
     }
 
     return 0;
+}
+
+int fs_delete(char* filename) {
+    int size = currentwd->size / fsvcb->blockSize;
+    for (int i = 2; i < size; i++) {
+        if (currentwd[i].type != 0 && strcmp(currentwd[i].name, filename) == 0) {
+            freespaceReleaseBlocks(currentwd[i].location);
+            return 0;
+        }
+    }
+
+    return -1;
 }
 
 int fs_stat(const char *path, struct fs_stat *buf) {
