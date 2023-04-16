@@ -27,7 +27,9 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
     strcpy(dir[0].name, ".");
     time_t timer;
     timer = time(NULL);
-    localtime_r(&timer, &dir[0].time);
+    localtime_r(&timer, &dir[0].timeCreate);
+    dir[0].timeAccess = dir[0].timeCreate;
+    dir[0].timeModify = dir[0].timeCreate;
     dir[0].location = startBlock;
     dir[0].size = bytesNeeded;
     dir[0].type = 0;
@@ -38,14 +40,18 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
         strcpy(dir[1].name, "..");
         dir[1].size = dir[0].size;
         dir[1].location = dir[0].location;
-	    dir[1].time = dir[0].time;
+	    dir[1].timeCreate = dir[0].timeCreate;
+        dir[1].timeAccess = dir[0].timeCreate;
+        dir[1].timeModify = dir[0].timeCreate;
         dir[1].type = dir[0].type;
     } else {
         // not a rootDir
         strcpy(dir[1].name, parent->name);
         dir[1].size = parent->size;
         dir[1].location = parent->location;
-        dir[1].time = parent->time;
+        dir[1].timeCreate = parent->timeCreate;
+        dir[1].timeAccess = parent->timeAccess;
+        dir[1].timeModify = parent->timeModify;
         dir[1].type = parent->type;
     }
 
@@ -67,7 +73,9 @@ void dirEntryCopy (dirEntry *destination, dirEntry *source, unsigned int index, 
     strcpy(destination[index].name, name);
     destination[index].size = source->size;
     destination[index].location = source->location;
-    destination[index].time = source->time;
+    destination[index].timeCreate = source->timeCreate;
+    destination[index].timeAccess = source->timeAccess;
+    destination[index].timeModify = source->timeModify;
     destination[index].type = source->type;
     LBAwrite(destination, destination->size / fsvcb->blockSize, destination->location);
 }

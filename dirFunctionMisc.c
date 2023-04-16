@@ -112,3 +112,21 @@ int fs_isFile(char * filename) {
 
     return 0;
 }
+
+int fs_stat(const char *path, struct fs_stat *buf) {
+    dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
+    char str[4096];
+    strcpy(str, path);
+
+    int index = parsePath(str, rootDir, dir);
+
+    buf->st_size = dir[index].size;
+    buf->st_blksize = fsvcb->blockSize;
+    buf->st_blocks = dir[index].size / fsvcb->blockSize;
+    buf->st_createtime = mktime(&dir[index].timeCreate);
+    buf->st_modtime = mktime(&dir[index].timeModify);
+    buf->st_accesstime = mktime(&dir[index].timeAccess);
+
+    free(dir);
+    return 0;
+}

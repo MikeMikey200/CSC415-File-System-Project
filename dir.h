@@ -28,13 +28,15 @@
 			a struct that can be use to dictate time using localtime_s
 */
 typedef struct dirEntry {
-	char name[128];
+	char name[256];
 	int idOwner;
 	int idGroup;
 	int type;
 	unsigned int size;
 	unsigned int location;
-	struct tm time; 
+	struct tm timeAccess;
+	struct tm timeModify;
+	struct tm timeCreate; 
 } dirEntry;
 
 extern dirEntry *rootDir;

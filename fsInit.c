@@ -195,6 +195,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	char *str;
 	str = fs_getcwd(str, 1024);
 	printf("%s\n", str);
+	free(str);
 
 	fdDir * fd = fs_opendir(pathname);
 	struct fs_diriteminfo *dirInfo = fs_readdir(fd);
