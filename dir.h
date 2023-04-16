@@ -42,5 +42,6 @@ extern dirEntry *rootDir;
 dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent);
 int dirFindUnusedEntry(dirEntry *dir);
 void dirEntryCopy (dirEntry *dir1, dirEntry *dir2, unsigned int index, char *name);
+void dirEntryLoad(dirEntry *dir1, dirEntry *dir2, unsigned int index);
 
 #endif /* DIR_H */

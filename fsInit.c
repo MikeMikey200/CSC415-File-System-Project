@@ -81,6 +81,9 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	
 	LBAread(rootDir, rootDir->size / fsvcb->blockSize, rootDir->location);
 	
+	// testing for parsePath for dir
+	dirEntry *tempDir = malloc(MAXENTRIES * dirEntrySize);
+
 	dirEntry *dir1 = dirInit(INITENTRIES, rootDir);
 	dirEntryCopy(rootDir, dir1, dirFindUnusedEntry(rootDir), "dir1");
 	dirEntry *dir2 = dirInit(INITENTRIES, rootDir);
@@ -88,18 +91,16 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	dirEntry *dir3 = dirInit(INITENTRIES, rootDir);
 	dirEntryCopy(rootDir, dir3, dirFindUnusedEntry(rootDir), "dir3");
 
-	LBAread(rootDir, rootDir->size / fsvcb->blockSize, rootDir->location);
+	LBAread(tempDir, rootDir->size / fsvcb->blockSize, rootDir->location);
 	
 	for(int i = 2; i < 5; i++) {
-		printf("%s\n", rootDir[i].name);
+		printf("%s\n", tempDir[i].name);
 	}
 
 	dirEntry *foo1 = dirInit(INITENTRIES, dir3);
 	dirEntryCopy(dir3, foo1, dirFindUnusedEntry(dir3), "foo1");
 	dirEntry *foo2 = dirInit(INITENTRIES, dir3);
 	dirEntryCopy(dir3, foo2, dirFindUnusedEntry(dir3), "foo2");
-
-	dirEntry *tempDir = malloc(MAXENTRIES * dirEntrySize);
 
 	LBAread(tempDir, dir3->size / fsvcb->blockSize, dir3->location);
 
@@ -120,9 +121,14 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		printf("%s\n", tempDir[i].name);
 	}
 
-	char pathname[] = "dir3\\foo2\\bar5";
-	printf("%d\n", parsePath(pathname, rootDir));
+	char pathname[] = "dir3\\foo2\\bar2";
+	printf("%d\n", parsePath(pathname, rootDir, tempDir));
 
+	// location check
+	printf("%d\n", bar2->location);
+	printf("%d\n", tempDir->location);
+
+	// testing parsePath for file.name == dir.name
 	dirEntry *dir1file1 = dirInit(INITENTRIES, dir1);
 	dir1file1->type = 1;
 	dirEntryCopy(dir1, dir1file1, dirFindUnusedEntry(dir1), "dir1file1");
@@ -151,7 +157,11 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 
 	char pathname1[] = "dir1\\dir1file2\\dir1dir1file1";
-	printf("%d\n", parsePath(pathname1, rootDir));
+	printf("%d\n", parsePath(pathname1, rootDir, tempDir));
+
+	// location check
+	printf("%d\n", dir1dir1file1->location);
+	printf("%d\n", tempDir->location);
 
 	return 0;
 	}

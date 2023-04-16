@@ -9,7 +9,7 @@
 
 /*!
 @function 	locateEntry
-@abstract locate the entry using index to traverse the directory to find name
+@abstract 	locate the entry using index to traverse the directory to find name
 
 @param 		name
 			indicate pass by reference of tokenized string name
@@ -28,12 +28,12 @@ int locateEntry(char *name, dirEntry *dir, int index);
 @abstract 	take in a $pathname and parse it until last tokenized string if it exist or not in our directory
 
 @param		pathname
-			$pathname "foo\bar"
+			$pathname "foo\\bar"
 @param		dir
-			rootDir or starting dirEntry
+			rootDir (absolute path) or starting dirEntry (relative path)
 
 @return		the index of the directory
 */
-int parsePath(char pathname[], dirEntry *dir);
+int parsePath(char pathname[], dirEntry *dir, dirEntry *catch);
 
 #endif /* PARSEPATH_H */

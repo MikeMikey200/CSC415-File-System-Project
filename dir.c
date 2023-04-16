@@ -73,3 +73,7 @@ void dirEntryCopy (dirEntry *dir1, dirEntry *dir2, unsigned int index, char *nam
     dir1[index].type = dir2->type;
     LBAwrite(dir1, dir1->size / fsvcb->blockSize, dir1->location);
 }
+
+void dirEntryLoad(dirEntry *dir1, dirEntry *dir2, unsigned int index) {
+    LBAread(dir1, dir2[index].size / fsvcb->blockSize, dir2[index].location);
+}
