@@ -124,7 +124,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 
 	char pathname[] = "dir3\\foo2\\bar2";
-	printf("%d\n", parsePath(pathname, rootDir, tempDir));
+	printf("parsePath: %d\n", parsePath(pathname, rootDir, tempDir));
 
 	// location check
 	printf("%d\n", bar2->location);
@@ -159,7 +159,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 
 	char pathname1[] = "dir1\\dir1file2\\dir1dir1file1";
-	printf("%d\n", parsePath(pathname1, rootDir, tempDir));
+	printf("parsePath: %d\n", parsePath(pathname1, rootDir, tempDir));
 
 	// location check
 	printf("%d\n", dir1dir1file1->location);
@@ -171,7 +171,6 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	char *str;
 	str = fs_getcwd(str, 1024);
 	printf("%s\n", str);
-
 
 	return 0;
 	}

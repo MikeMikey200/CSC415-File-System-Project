@@ -40,46 +40,32 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 			return -1;
 		}
 
-		if (entryDir[index].type == 0) {
-			// a directory
-			// is this the item?
-			if (token == NULL){
-				if (strcmp(entryDir[index].name, tokenPrev) == 0){
-					// exist
-					dirEntryLoadIndex(catch, entryDir, index);
-					free(entryDir);
-					return index;
-				}
-				// not exist
-				catch = NULL;
+		// is this the item?
+		if (token == NULL){
+			if (strcmp(entryDir[index].name, tokenPrev) == 0){
+				// exist
+				dirEntryLoadIndex(catch, entryDir, index);
 				free(entryDir);
-				return -1;
+				return index;
 			}
-			// load directory
-			LBAread(entryDir, entryDir[index].size / fsvcb->blockSize, entryDir[index].location);
-			index = 2;
-			flag = 0;
-		} else {
-			// not a directory
-			// is this the item?
-			if (token == NULL){
-				if (strcmp(entryDir[index].name, tokenPrev) == 0){
-					// exist
-					dirEntryLoadIndex(catch, entryDir, index);
-					free(entryDir);
-					return index;
-				}
-				// not exist
-				catch = NULL;
-				free(entryDir);
-				return -1;
-			}
-			// if file name and directory name are the same, skip the current file
-			if (strcmp(entryDir[index].name, tokenPrev) == 0) {
+			// not exist
+			catch = NULL;
+			free(entryDir);
+			return -1;
+		}
+
+		if (strcmp(entryDir[index].name, tokenPrev) == 0) {
+			if (entryDir[index].type == 0) {
+				// a directory
+				// load directory
+				LBAread(entryDir, entryDir[index].size / fsvcb->blockSize, entryDir[index].location);
+				index = 2;
+				flag = 0;
+			} else {
+				// not a directory
+				// if file name and directory name are the same, skip the current file
 				index++;
 				flag = 1;
-			} else {
-				flag = 0;
 			}
 		}
 	}
