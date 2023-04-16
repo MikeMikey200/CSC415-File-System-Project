@@ -89,7 +89,6 @@ int locateEntry(char *name, dirEntry *dir, int index) {
 
 	for (int i = index; i < size; i++){
 		if (dir[i].name[0] != '\0' && strcmp(dir[i].name, name) == 0) {
-            printf("index: %d, name: %s\n", i, dir[i].name);
 			return i;
 		}
 	}

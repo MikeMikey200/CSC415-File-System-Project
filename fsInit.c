@@ -123,6 +123,36 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	char pathname[] = "dir3\\foo2\\bar5";
 	printf("%d\n", parsePath(pathname, rootDir));
 
+	dirEntry *dir1file1 = dirInit(INITENTRIES, dir1);
+	dir1file1->type = 1;
+	dirEntryCopy(dir1, dir1file1, dirFindUnusedEntry(dir1), "dir1file1");
+	dirEntry *dir1file2 = dirInit(INITENTRIES, dir1);
+	dir1file2->type = 1;
+	dirEntryCopy(dir1, dir1file2, dirFindUnusedEntry(dir1), "dir1file2");
+
+	dirEntry *dir1dir1 = dirInit(INITENTRIES, dir1);
+	dirEntryCopy(dir1, dir1dir1, dirFindUnusedEntry(dir1), "dir1file1");
+	dirEntry *dir1dir2 = dirInit(INITENTRIES, dir1);
+	dirEntryCopy(dir1, dir1dir2, dirFindUnusedEntry(dir1), "dir1file2");
+
+	LBAread(tempDir, dir1->size / fsvcb->blockSize, dir1->location);
+
+	for(int i = 2; i < 6; i++) {
+		printf("%s\n", tempDir[i].name);
+	}
+
+	dirEntry *dir1dir1file1 = dirInit(INITENTRIES, dir1dir2);
+	dirEntryCopy(dir1dir2, dir1dir1file1, dirFindUnusedEntry(dir1dir2), "dir1dir1file1");
+
+	LBAread(tempDir, dir1dir2->size / fsvcb->blockSize, dir1dir2->location);
+
+	for(int i = 2; i < 3; i++) {
+		printf("%s\n", tempDir[i].name);
+	}
+
+	char pathname1[] = "dir1\\dir1file2\\dir1dir1file1";
+	printf("%d\n", parsePath(pathname1, rootDir));
+
 	return 0;
 	}
 	
