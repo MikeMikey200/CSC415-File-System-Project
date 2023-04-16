@@ -95,7 +95,7 @@ int fs_isDir(char * pathname) {
         return 0;
     }
 
-} //return 1 if directory, 0 otherwise
+}
 
 int fs_isFile(char * filename) {
     if (!fs_isDir(pathname)) {
@@ -106,4 +106,4 @@ int fs_isFile(char * filename) {
         return 0;
     }
 
-}	//return 1 if file, 0 otherwise
+}
