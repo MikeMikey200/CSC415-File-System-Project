@@ -18,15 +18,13 @@ int fs_setcwd(char *pathname) {
     strcpy(str, pathname);
     str[strlen(pathname)] = '\0';
 
-    if (parsePath(str, rootDir, dir) == -1) {
+    int index = parsePath(str, rootDir, dir);
+    if (index == -1) {
         free(dir);
         return -1;
     }
-
-    if (currentwd != NULL) {
-        free(currentwd);
-    }
-    currentwd = dir;
+    
+    dirEntryLoadIndex(currentwd, dir, index);
 
     free(str);
     return 0;
@@ -70,3 +68,4 @@ char *fs_getcwd(char *pathname, size_t size) {
     free(dir);
     return pathname;
 }
+
