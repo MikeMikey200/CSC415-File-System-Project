@@ -8,6 +8,12 @@
 #include "parsePath.h"
 #include "mfs.h"
 
+int fs_mkdir(const char *pathname, mode_t mode) {
+    
+
+    return 0;
+}
+
 int fs_rmdir(const char *pathname) {
     dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
     char str[MAXPATH];
