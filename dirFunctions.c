@@ -38,20 +38,26 @@ char *fs_getcwd(char *pathname, size_t size) {
     }
 
     dirEntry *dir = malloc(MAXENTRIES * sizeof(dirEntry));
+    if (dir == NULL) {
+        return NULL;
+    }
     dirEntryLoad(dir, currentwd);
 
     pathname = malloc(size * sizeof(char));
-    char *str = malloc(size * sizeof(char));
-    str[0] = '\0';
+    if (pathname == NULL) {
+        free(dir);
+        return NULL;
+    }
     pathname[0] = '\0';
-    char *name;
+
+    char *str, *name;
     unsigned int location;
 
-    int index = 0;
     while(dir->location != rootDir->location) {
         location = dir->location;
         LBAread(dir, dir[1].size / fsvcb->blockSize, dir[1].location);
         name = dirFindName(dir, location);
+
         strcat(pathname, "\\");
         strcat(pathname, name);
         strcat(pathname, str);
@@ -61,5 +67,6 @@ char *fs_getcwd(char *pathname, size_t size) {
     }
     strcpy(pathname, str);
 
+    free(dir);
     return pathname;
 }
