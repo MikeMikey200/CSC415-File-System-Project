@@ -78,26 +78,51 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	freespaceAllocateBlocks(vcbBlock, fatBlock);
 
 	rootDir = dirInit(INITENTRIES, NULL);
-	dirEntry * dir1 = dirInit(INITENTRIES, rootDir);
-	dirEntry * dir2 = dirInit(INITENTRIES, rootDir);
-	dirEntry * dir3 = dirInit(INITENTRIES, rootDir);
-	strcpy(dir1->name, "dir1");
-	strcpy(dir2->name, "dir2");
-	strcpy(dir3->name, "dir3");
-	unsigned int index = dirFindUnusedEntry(rootDir);
-	dirEntryCopy(rootDir, dir1, index);
-	index = dirFindUnusedEntry(rootDir);
-	dirEntryCopy(rootDir, dir2, index);
-	index = dirFindUnusedEntry(rootDir);
-	dirEntryCopy(rootDir, dir3, index);
-	dirEntry * foo = dirInit(INITENTRIES, dir1);
-	strcpy(foo->name, "foo");
-	dirEntryCopy(dir1, foo, dirFindUnusedEntry(dir1));
-	dirEntry * bar = dirInit(3, foo);
-	strcpy(bar->name, "bar");
-	bar->type = 1;
-	dirEntryCopy(foo, bar, dirFindUnusedEntry(foo));
-	parsePath("dir1\foo\bar", rootDir);
+	
+	LBAread(rootDir, rootDir->size / fsvcb->blockSize, rootDir->location);
+	
+	dirEntry *dir1 = dirInit(INITENTRIES, rootDir);
+	dirEntryCopy(rootDir, dir1, dirFindUnusedEntry(rootDir), "dir1");
+	dirEntry *dir2 = dirInit(INITENTRIES, rootDir);
+	dirEntryCopy(rootDir, dir2, dirFindUnusedEntry(rootDir), "dir2");
+	dirEntry *dir3 = dirInit(INITENTRIES, rootDir);
+	dirEntryCopy(rootDir, dir3, dirFindUnusedEntry(rootDir), "dir3");
+
+	LBAread(rootDir, rootDir->size / fsvcb->blockSize, rootDir->location);
+	
+	for(int i = 2; i < 5; i++) {
+		printf("%s\n", rootDir[i].name);
+	}
+
+	dirEntry *foo1 = dirInit(INITENTRIES, dir3);
+	dirEntryCopy(dir3, foo1, dirFindUnusedEntry(dir3), "foo1");
+	dirEntry *foo2 = dirInit(INITENTRIES, dir3);
+	dirEntryCopy(dir3, foo2, dirFindUnusedEntry(dir3), "foo2");
+
+	dirEntry *tempDir = malloc(MAXENTRIES * dirEntrySize);
+
+	LBAread(tempDir, dir3->size / fsvcb->blockSize, dir3->location);
+
+	for(int i = 2; i < 4; i++) {
+		printf("%s\n", tempDir[i].name);
+	}
+
+	dirEntry *bar1 = dirInit(INITENTRIES, foo2);
+	dirEntryCopy(foo2, bar1, dirFindUnusedEntry(foo2), "bar1");
+	dirEntry *bar2 = dirInit(INITENTRIES, foo2);
+	dirEntryCopy(foo2, bar2, dirFindUnusedEntry(foo2), "bar2");
+	dirEntry *bar3 = dirInit(INITENTRIES, foo2);
+	dirEntryCopy(foo2, bar3, dirFindUnusedEntry(foo2), "bar3");
+
+	LBAread(tempDir, foo2->size / fsvcb->blockSize, foo2->location);
+
+	for(int i = 2; i < 5; i++) {
+		printf("%s\n", tempDir[i].name);
+	}
+
+	char pathname[] = "dir3\\foo2\\bar5";
+	printf("%d\n", parsePath(pathname, rootDir));
+
 	return 0;
 	}
 	
