@@ -9,8 +9,12 @@ dirEntry *currentwd;
 
 int fs_setcwd(char *pathname) { 
     dirEntry *dir = malloc(MAXENTRIES * sizeof(dirEntry));
-    parsePath(pathname, rootDir, dir);
     if (dir == NULL) {
+        return -1;
+    }
+
+    if (parsePath(pathname, rootDir, dir) == -1) {
+        free(dir);
         return -1;
     }
 
@@ -23,5 +27,9 @@ int fs_setcwd(char *pathname) {
 }
 
 char *fs_getcwd(char *pathname, size_t size) {
+    if(pathname == NULL || size == 0) {
+        return NULL;
+    }
+
     
 }
