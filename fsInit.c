@@ -190,9 +190,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	free(dir1dir1file1);
 
 	fs_setcwd("dir3\\foo2\\bar3");
-	printf("here\n");
 	printf("%d\n", currentwd[0].location);
-	printf("here\n");
 
 	char *str;
 	str = fs_getcwd(str, 1024);
