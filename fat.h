@@ -45,7 +45,6 @@ unsigned int freespaceFindFreeBlock();
 @param		blockNum
 			specify the amount of block the file need
 @return		amount of block allocated, -1 for error
-
 */
 int freespaceAllocateBlocks(unsigned int startLocation, unsigned int blockNum);
 

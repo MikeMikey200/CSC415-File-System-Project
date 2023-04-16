@@ -5,6 +5,8 @@
         "mfs.h": "c",
         "fslow.h": "c",
         "stdlib.h": "c",
-        "dir.h": "c"
+        "dir.h": "c",
+        "stdio.h": "c",
+        "string.h": "c"
     }
 }

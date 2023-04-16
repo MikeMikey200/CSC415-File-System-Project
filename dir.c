@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "fsLow.h"
 #include "dir.h"
@@ -17,13 +18,14 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
     dirEntry *dir = malloc(bytesUsed);
     unsigned int startBlock = freespaceFindFreeBlock();
     freespaceAllocateBlocks(startBlock, blocksNeeded);
-
+    
     // init each dir to unused
     for(int i = 2; i < numEntry; i++){
         dir[i].name[0] = '\0';
     }
 
     // initialize "."
+    
     strcpy(dir[0].name, ".");
     time_t timer;
     timer = time(NULL);
@@ -51,4 +53,27 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
 
     LBAwrite(dir, blocksNeeded, startBlock);
     return dir;
+}
+
+int dirFindUnusedEntry(dirEntry *dir) {
+    unsigned int dirEntryNum = dir->size / sizeof(dirEntry);
+    for(int i = 2; i < dirEntryNum; i++){
+        if (dir[i].name[0] == '\0') {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void dirEntryCopy (dirEntry *dir1, dirEntry *dir2, unsigned int index, char *name) {
+    strcpy(dir1[index].name, name);
+    dir1[index].size = dir2->size;
+    dir1[index].location = dir2->location;
+    dir1[index].time = dir2->time;
+    dir1[index].type = dir2->type;
+    LBAwrite(dir1, dir1->size / fsvcb->blockSize, dir1->location);
+}
+
+void dirEntryLoad(dirEntry *dir1, dirEntry *dir2, unsigned int index) {
+    LBAread(dir1, dir2[index].size / fsvcb->blockSize, dir2[index].location);
 }
