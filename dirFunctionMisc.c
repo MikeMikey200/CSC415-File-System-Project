@@ -9,7 +9,7 @@
 #include "fsLow.h"
 
 int fs_setcwd(char *pathname) { 
-    dirEntry *dir = malloc(MAXENTRIES * sizeof(dirEntry));
+    dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
     if (dir == NULL) {
         return -1;
     }
@@ -24,9 +24,6 @@ int fs_setcwd(char *pathname) {
         return -1;
     }
 
-    if (currentwd != NULL) {
-        free(currentwd);
-    }
     dirEntryLoadIndex(currentwd, dir, index);
 
     free(dir);
@@ -38,22 +35,18 @@ char *fs_getcwd(char *pathname, size_t size) {
     if(size == 0) {
         return NULL;
     }
-    printf("set here\n");
-    dirEntry *dir = malloc(MAXENTRIES * sizeof(dirEntry));
-    printf("%d\n", dir->location);
-    printf("set here\n");
-    if (dir == NULL) {
-        return NULL;
-    }
-    
-    dirEntryLoad(dir, currentwd);
 
+    dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
+
+    dirEntryLoad(dir, currentwd);
+    
     pathname = malloc(size * sizeof(char));
     if (pathname == NULL) {
         free(dir);
         return NULL;
     }
     pathname[0] = '\0';
+    printf("here\n");
 
     char *str = malloc(sizeof(pathname));
     str[0] = '\0';
@@ -61,8 +54,9 @@ char *fs_getcwd(char *pathname, size_t size) {
     char *name;
     unsigned int location;
 
-    while(dir->location != rootDir->location) {
-        location = dir->location;
+    
+    while(dir[0].location != rootDir[0].location) {
+        location = dir[0].location;
         LBAread(dir, dir[1].size / fsvcb->blockSize, dir[1].location);
         name = dirFindName(dir, location);
         
@@ -100,6 +94,7 @@ int fs_isDir(char * pathname) {
 
 }
 
+/*
 int fs_isFile(char * filename) {
     if (!fs_isDir(pathname)) {
         return 1;
@@ -110,3 +105,4 @@ int fs_isFile(char * filename) {
     }
 
 }
+*/

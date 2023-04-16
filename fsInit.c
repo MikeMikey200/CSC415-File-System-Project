@@ -52,7 +52,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	fsvcb = malloc(vcbBlock * blockSize);
 	freespace = malloc(fatBlock * blockSize);
-	currentwd = malloc(MAXENTRIES * dirEntrySize);
+	currentwd = malloc(BLOCK(dirEntrySize, MAXENTRIES, blockSize) * blockSize);
 
 	// this is to check whether vcb is already init so we don't override disk
 	LBAread(fsvcb, vcbBlock, 0);
@@ -86,7 +86,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	LBAread(rootDir, rootDir->size / fsvcb->blockSize, rootDir->location);
 	
 	// testing for parsePath for dir
-	dirEntry *tempDir;
+	dirEntry *tempDir = malloc(BLOCK(dirEntrySize, MAXENTRIES, blockSize) * blockSize);
 
 	dirEntry *dir1 = dirInit(INITENTRIES, rootDir);
 	dirEntryCopy(rootDir, dir1, dirFindUnusedEntry(rootDir), "dir1");
@@ -169,8 +169,30 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	printf("%d\n", dir1dir1file1->location);
 	printf("%d\n", tempDir[index].location);
 
+	free(tempDir);
+
+	free(dir1);
+	free(dir2);
+	free(dir3);
+
+	free(foo1);
+	free(foo2);
+
+	free(bar1);
+	free(bar2);
+	free(bar3);
+
+	free(dir1dir1);
+	free(dir1dir2);
+	free(dir1file1);
+	free(dir1file2);
+
+	free(dir1dir1file1);
+
 	fs_setcwd("dir3\\foo2\\bar3");
-	printf("%d\n", currentwd->location);
+	printf("here\n");
+	printf("%d\n", currentwd[0].location);
+	printf("here\n");
 
 	char *str;
 	str = fs_getcwd(str, 1024);
