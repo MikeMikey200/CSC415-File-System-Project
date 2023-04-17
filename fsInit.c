@@ -86,9 +86,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	rootDir = dirInit(INITENTRIES, NULL);
 	
-	LBAread(rootDir, rootDir->size / fsvcb->blockSize, rootDir->location);
 	fs_setcwd("\\");
-	
 	return 0;
 	}
 	

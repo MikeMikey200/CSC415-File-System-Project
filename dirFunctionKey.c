@@ -43,7 +43,7 @@ int fs_mkdir(const char *pathname, mode_t mode) {
     }
 
     dirEntryCopy(dir, item, dirFindUnusedEntry(dir), tokenPrev);
-    LBAread(currentwd, currentwd->size / fsvcb->blockSize, currentwd->location);
+    dirEntryLoad(currentwd, currentwd);
 
     free(item);
     return 0;
@@ -77,10 +77,10 @@ int fs_rmdir(const char *pathname) {
     }
 
     dirEntryLoadIndex(dir, dir, 1);
-    dir[index].name[0] = '\0';
-    freespaceReleaseBlocks(dir->location);
 
+    strcpy(dir[index].name, "\0");
     LBAwrite(dir, dir->size / fsvcb->blockSize, dir->location);
-
+    dirEntryLoad(currentwd, currentwd);
+    freespaceReleaseBlocks(dir[index].location);
     return 0;
 }

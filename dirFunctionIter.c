@@ -20,7 +20,7 @@ fdDir * fs_opendir(const char *pathname) {
     } else {
         index = parsePath(str, currentwd, dir);
     }
-    
+
     if (index == -1) {
         free(dir);
         return NULL;
@@ -39,18 +39,18 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
     int size = currentwd->size / sizeof(dirEntry);
     
     for(int i = dirp->dirEntryPosition; i < size; i++) {
-        if (currentwd[dirp->dirEntryPosition].name[0] != '\0') {
+        if (strcmp(currentwd[i].name, "\0") != 0) {
             struct fs_diriteminfo *dirInfo = malloc(sizeof(struct fs_diriteminfo));
             dirInfo->d_reclen = sizeof(struct fs_diriteminfo);
 
-            if(currentwd[dirp->dirEntryPosition].type == 0) {
+            if(currentwd[i].type == 0) {
                 dirInfo->fileType = DT_DIR;
             } else {
                 dirInfo->fileType = DT_REG;
             }
-            strcpy(dirInfo->d_name, currentwd[dirp->dirEntryPosition].name);
+            strcpy(dirInfo->d_name, currentwd[i].name);
 
-            dirp->dirEntryPosition++;
+            dirp->dirEntryPosition = i + 1;
             
             return dirInfo;
         }

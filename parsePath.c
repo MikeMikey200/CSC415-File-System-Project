@@ -27,7 +27,7 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 	int index = 0;
 	
 	// load the initial dir
-    LBAread(entryDir, dir->size / fsvcb->blockSize, dir->location);
+	dirEntryLoad(entryDir, dir);
 
 	token = strtok_r(str, delim, &saveptr);
 	while(token != NULL){
@@ -65,7 +65,7 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 			if (entryDir[index].type == 0) {
 				// a directory
 				// load directory
-				LBAread(entryDir, entryDir[index].size / fsvcb->blockSize, entryDir[index].location);
+				dirEntryLoadIndex(entryDir, entryDir, index);
 				index = 0;
 				flag = 0;
 			} else {
