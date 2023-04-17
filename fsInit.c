@@ -57,9 +57,12 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	// this is to check whether vcb is already init so we don't override disk
 	LBAread(fsvcb, vcbBlock, 0);
 	if(fsvcb->signature == SIGNATURE){
-		// LBAread(freespace, fatBlock, vcbBlock);
-		// rootDir = malloc(dirEntryBlock * blockSize);
-		// return 0;
+		LBAread(freespace, fatBlock, vcbBlock);
+		rootDir = malloc(dirEntryBlock * blockSize);
+		LBAread(rootDir, dirEntryBlock, vcbBlock + fatBlock);
+
+		fs_setcwd("\\");
+		return 0;
 	}
 
 	// initializing vcb
@@ -84,9 +87,8 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	rootDir = dirInit(INITENTRIES, NULL);
 	
 	LBAread(rootDir, rootDir->size / fsvcb->blockSize, rootDir->location);
-	
 	fs_setcwd("\\");
-
+	
 	return 0;
 	}
 	

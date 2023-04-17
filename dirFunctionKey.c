@@ -7,6 +7,7 @@
 #include "vcb.h"
 #include "parsePath.h"
 #include "mfs.h"
+#include "fsLow.h"
 
 //mode_t will be implimented if permission are require
 //pathname refers to the directory name, currentwd is used as the parent when called

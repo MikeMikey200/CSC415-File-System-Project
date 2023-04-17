@@ -129,6 +129,7 @@ int fs_delete(char* filename) {
         }
     }
 
+    // dirEntryLoad(currentwd, currentwd);
     return -1;
 }
 
