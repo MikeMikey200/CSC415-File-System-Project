@@ -8,6 +8,8 @@
 #include "parsePath.h"
 #include "mfs.h"
 
+//mode_t will be implimented if permission are require
+//pathname refers to the directory name, currentwd is used as the parent when called
 int fs_mkdir(const char *pathname, mode_t mode) {
     dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
     dirEntry *item;
