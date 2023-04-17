@@ -61,13 +61,3 @@ int fs_rmdir(const char *pathname) {
 
     return 0;
 }
-
-/*
-dirEntryLoadIndex(currentwd, currentwd, i);
-                int sizeDir = currentwd->size / fsvcb->blockSize; 
-                for (int j = 2; j < sizeDir; j++) {
-                    fs_delete(currentwd[j].name);
-                }
-                dirEntryLoadIndex(currentwd, currentwd, 1);
-                freespaceReleaseBlocks(currentwd[i].location);
-*/

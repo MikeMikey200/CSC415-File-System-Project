@@ -27,7 +27,6 @@ int fs_setcwd(char *pathname) {
         index = parsePath(str, currentwd, dir);
     }
 
-    printf("%d\n", index);
     if (index == -1) {
         free(dir);
         return -1;
@@ -139,7 +138,12 @@ int fs_stat(const char *path, struct fs_stat *buf) {
     strcpy(str, path);
     str[strlen(path)] = '\0';
 
-    int index = parsePath(str, rootDir, dir);
+    int index;
+    if (str[0] == '\\') {
+        index = parsePath(str, rootDir, dir);
+    } else {
+        index = parsePath(str, currentwd, dir);
+    }
 
     buf->st_size = dir[index].size;
     buf->st_blksize = fsvcb->blockSize;
