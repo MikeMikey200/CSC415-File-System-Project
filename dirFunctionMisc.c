@@ -93,11 +93,15 @@ int fs_isDir(char * pathname) {
         return -1;
     }
 
-    // check if pathname is a directory
-    int index = parsePath(pathname, rootDir, dir);
-    if (index == -1 ) {
-        free(dir);
-        return -1;
+    char str[MAXPATH];
+    strcpy(str, pathname);
+    str[strlen(pathname)] = '\0';
+    int index;
+
+    if (str[0] == '\\') {
+        index = parsePath(str, rootDir, dir);
+    } else {
+        index = parsePath(str, currentwd, dir);
     }
 
     if (dir[index].type == 0) {
@@ -124,12 +128,12 @@ int fs_delete(char* filename) {
     int size = currentwd->size / fsvcb->blockSize;
     for (int i = 2; i < size; i++) {
         if (strcmp(currentwd[i].name, filename) == 0 && currentwd[i].type != 0) {
+            currentwd[i].name[0] = '\0';
+            LBAwrite(currentwd, currentwd->size / fsvcb->blockSize, currentwd->location);
             freespaceReleaseBlocks(currentwd[i].location);
             return 0;
         }
     }
-
-    // dirEntryLoad(currentwd, currentwd);
     return -1;
 }
 

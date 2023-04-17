@@ -12,6 +12,10 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 		return 0;
 	}
 
+	char str[MAXPATH];
+    strcpy(str, pathname);
+    str[strlen(pathname)] = '\0';
+
 	dirEntry *entryDir = malloc(sizeof(dirEntry) * MAXENTRIES);
 
 	char *saveptr, *token, *tokenPrev;
@@ -25,7 +29,7 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 	// load the initial dir
     LBAread(entryDir, dir->size / fsvcb->blockSize, dir->location);
 
-	token = strtok_r(pathname, delim, &saveptr);
+	token = strtok_r(str, delim, &saveptr);
 	while(token != NULL){
 		// ignoring if the naming of the file == directory for now
         if (!flag) {

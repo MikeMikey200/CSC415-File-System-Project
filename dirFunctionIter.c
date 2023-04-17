@@ -9,11 +9,18 @@
 fdDir * fs_opendir(const char *pathname) {
     dirEntry *dir = malloc(MAXENTRIES * sizeof(dirEntry));
     
-    char *str = malloc((strlen(pathname) + 1) * sizeof(dirEntry));
-    strncpy(str, pathname, strlen(pathname));
+    char str[MAXPATH];
+    strcpy(str, pathname);
     str[strlen(pathname)] = '\0';
+    int index;
 
-    int index = parsePath(str, rootDir, dir);
+
+    if (str[0] == '\\') {
+        index = parsePath(str, rootDir, dir);
+    } else {
+        index = parsePath(str, currentwd, dir);
+    }
+    
     if (index == -1) {
         free(dir);
         return NULL;
@@ -24,6 +31,7 @@ fdDir * fs_opendir(const char *pathname) {
     fd->directoryStartLocation = dir[index].location;
     fd->d_reclen = sizeof(fdDir);
 
+    free(dir);
     return fd;
 }
 

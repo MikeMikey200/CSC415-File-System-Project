@@ -44,6 +44,8 @@ int fs_mkdir(const char *pathname, mode_t mode) {
 
     dirEntryCopy(dir, item, dirFindUnusedEntry(dir), tokenPrev);
     LBAread(currentwd, currentwd->size / fsvcb->blockSize, currentwd->location);
+
+    free(item);
     return 0;
 }
 
@@ -52,13 +54,33 @@ int fs_rmdir(const char *pathname) {
     char str[MAXPATH];
     strcpy(str, pathname);
     str[strlen(pathname)] = '\0';
-    int index = parsePath(str, rootDir, dir);
+    int index;
+
+    if (str[0] == '\\') {
+        index = parsePath(str, rootDir, dir);
+    } else {
+        index = parsePath(str, currentwd, dir);
+    }
+
     if (index == -1) {
         free(dir);
         return -1;
     }
 
+    dirEntryLoadIndex(dir, dir, index);
 
+    int size = dir->size / fsvcb->blockSize;
+    for (int i = 2; i < size; i++) {
+        if (dir[i].name[0] != '\0') {
+            return -1;
+        }
+    }
+
+    dirEntryLoadIndex(dir, dir, 1);
+    dir[index].name[0] = '\0';
+    freespaceReleaseBlocks(dir->location);
+
+    LBAwrite(dir, dir->size / fsvcb->blockSize, dir->location);
 
     return 0;
 }
