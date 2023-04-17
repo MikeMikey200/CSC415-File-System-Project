@@ -46,7 +46,7 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
         dir[1].type = dir[0].type;
     } else {
         // not a rootDir
-        strcpy(dir[1].name, parent->name);
+        strcpy(dir[1].name, "..");
         dir[1].size = parent->size;
         dir[1].location = parent->location;
         dir[1].timeCreate = parent->timeCreate;

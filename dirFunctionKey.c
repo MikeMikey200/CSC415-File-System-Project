@@ -9,8 +9,38 @@
 #include "mfs.h"
 
 int fs_mkdir(const char *pathname, mode_t mode) {
-    
+    dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
+    dirEntry *item;
+    char str[MAXPATH];
+    strcpy(str, pathname);
+    str[strlen(pathname)] = '\0';
+    int index;
 
+    if (str[0] == '\\') {
+        index = parsePath(str, rootDir, dir);
+    } else {
+        index = parsePath(str, currentwd, dir);
+    }
+
+    if (index != -1) {
+        free(dir);
+        return -1;
+    }
+
+    item = dirInit(INITENTRIES, dir);
+
+    strcpy(str, pathname);
+    char *saveptr, *tokenPrev;
+    char *delim = "\\";
+    char *token = strtok_r(str, delim, &saveptr);
+    
+    while (token != NULL) {
+        tokenPrev = token;
+        token = strtok_r(NULL, delim, &saveptr);
+    }
+
+    dirEntryCopy(dir, item, dirFindUnusedEntry(dir), tokenPrev);
+    LBAread(currentwd, currentwd->size / fsvcb->blockSize, currentwd->location);
     return 0;
 }
 

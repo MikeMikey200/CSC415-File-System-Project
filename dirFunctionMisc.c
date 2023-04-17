@@ -15,11 +15,19 @@ int fs_setcwd(char *pathname) {
         return -1;
     }
 
-    char *str = malloc((strlen(pathname) + 1) * sizeof(char));
+    char str[MAXPATH];
     strcpy(str, pathname);
     str[strlen(pathname)] = '\0';
 
-    int index = parsePath(str, rootDir, dir);
+    int index;
+
+    if (str[0] == '\\') {
+        index = parsePath(str, rootDir, dir);
+    } else {
+        index = parsePath(str, currentwd, dir);
+    }
+
+    printf("%d\n", index);
     if (index == -1) {
         free(dir);
         return -1;
@@ -28,7 +36,6 @@ int fs_setcwd(char *pathname) {
     dirEntryLoadIndex(currentwd, dir, index);
 
     free(dir);
-    free(str);
     return 0;
 }
 

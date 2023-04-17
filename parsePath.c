@@ -7,6 +7,11 @@
 #include "fsLow.h"
 
 int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
+	if (strlen(pathname) == 1 && pathname[0] == '\\') {
+		dirEntryLoad(catch, rootDir);
+		return 0;
+	}
+
 	dirEntry *entryDir = malloc(sizeof(dirEntry) * MAXENTRIES);
 
 	char *saveptr, *token, *tokenPrev;
@@ -15,8 +20,7 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 	// determine if file name and directory name convention are the same
 	int flag = 0;
 
-	// skipping "." and ".." entry on directory
-	int index = 2;
+	int index = 0;
 	
 	// load the initial dir
     LBAread(entryDir, dir->size / fsvcb->blockSize, dir->location);
@@ -35,21 +39,20 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 
 		if (index == -1) {
 			// not exist
-			catch = NULL;
+			dirEntryLoad(catch, entryDir);
 			free(entryDir);
 			return -1;
 		}
 
 		// is this the item?
 		if (token == NULL){
+			dirEntryLoad(catch, entryDir);
 			if (strcmp(entryDir[index].name, tokenPrev) == 0){
 				// exist
-				dirEntryLoad(catch, entryDir);
 				free(entryDir);
 				return index;
 			}
 			// not exist
-			catch = NULL;
 			free(entryDir);
 			return -1;
 		}
@@ -59,7 +62,7 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 				// a directory
 				// load directory
 				LBAread(entryDir, entryDir[index].size / fsvcb->blockSize, entryDir[index].location);
-				index = 2;
+				index = 0;
 				flag = 0;
 			} else {
 				// not a directory
