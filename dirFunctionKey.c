@@ -8,9 +8,11 @@
 #include "parsePath.h"
 #include "mfs.h"
 
+//mode_t will be implimented if permission are require
+//pathname refers to the directory name, currentwd is used as the parent when called
 int fs_mkdir(const char *pathname, mode_t mode) {
-    
-
+    dirEntry *dir = dirInit(MAXENTRIES, currentwd);
+    dirEntryCopy(currentwd, dir, dirFindUnusedEntry(currentwd), pathname);
     return 0;
 }
 
