@@ -8,6 +8,9 @@
 
 fdDir * fs_opendir(const char *pathname) {
     dirEntry *dir = malloc(MAXENTRIES * sizeof(dirEntry));
+    if (dir == NULL) {
+        return NULL;
+    }
     
     char str[MAXPATH];
     strcpy(str, pathname);
@@ -23,6 +26,7 @@ fdDir * fs_opendir(const char *pathname) {
 
     if (index == -1) {
         free(dir);
+        dir = NULL;
         return NULL;
     }
 
@@ -32,6 +36,7 @@ fdDir * fs_opendir(const char *pathname) {
     fd->d_reclen = sizeof(fdDir);
 
     free(dir);
+    dir = NULL;
     return fd;
 }
 
@@ -41,6 +46,9 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
     for(int i = dirp->dirEntryPosition; i < size; i++) {
         if (strcmp(currentwd[i].name, "\0") != 0) {
             struct fs_diriteminfo *dirInfo = malloc(sizeof(struct fs_diriteminfo));
+            if (dirInfo == NULL) { 
+                return NULL;
+            }
             dirInfo->d_reclen = sizeof(struct fs_diriteminfo);
 
             if(currentwd[i].type == 0) {

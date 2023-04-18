@@ -17,6 +17,9 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
     str[strlen(pathname)] = '\0';
 
 	dirEntry *entryDir = malloc(sizeof(dirEntry) * MAXENTRIES);
+	if (entryDir == NULL) {
+		return -1;
+	}
 
 	char *saveptr, *token, *tokenPrev;
 	char *delim = "\\";
@@ -45,6 +48,7 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 			// not exist
 			dirEntryLoad(catch, entryDir);
 			free(entryDir);
+			entryDir = NULL;
 			return -1;
 		}
 
@@ -54,10 +58,12 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 			if (strcmp(entryDir[index].name, tokenPrev) == 0){
 				// exist
 				free(entryDir);
+				entryDir = NULL;
 				return index;
 			}
 			// not exist
 			free(entryDir);
+			entryDir = NULL;
 			return -1;
 		}
 
@@ -78,8 +84,9 @@ int parsePath(char *pathname, dirEntry *dir, dirEntry *catch) {
 	}
 
 	// not exist
-	catch = NULL;
+	dirEntryLoad(catch, entryDir);
 	free(entryDir);
+	entryDir = NULL;
 	return -1;
 }
 
@@ -91,5 +98,6 @@ int locateEntry(char *name, dirEntry *dir, int index) {
 			return i;
 		}
 	}
+
 	return -1;
 }

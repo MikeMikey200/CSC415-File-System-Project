@@ -15,6 +15,9 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
     unsigned int numEntry = bytesUsed / dirEntrySize;
     bytesNeeded = numEntry * dirEntrySize;
     dirEntry *dir = malloc(bytesUsed);
+    if (dir == NULL) {
+        return NULL;
+    }
     unsigned int startBlock = freespaceFindFreeBlock();
     freespaceAllocateBlocks(startBlock, blocksNeeded);
     

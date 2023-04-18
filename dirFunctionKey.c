@@ -13,6 +13,10 @@
 //pathname refers to the directory name, currentwd is used as the parent when called
 int fs_mkdir(const char *pathname, mode_t mode) {
     dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
+    if (dir == NULL) {
+        return -1;
+    }
+
     dirEntry *item;
     char str[MAXPATH];
     strcpy(str, pathname);
@@ -27,6 +31,7 @@ int fs_mkdir(const char *pathname, mode_t mode) {
 
     if (index != -1) {
         free(dir);
+        dir = NULL;
         return -1;
     }
 
@@ -47,11 +52,17 @@ int fs_mkdir(const char *pathname, mode_t mode) {
 
     free(dir);
     free(item);
+    dir = NULL;
+    item = NULL;
     return 0;
 }
 
 int fs_rmdir(const char *pathname) {
     dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
+    if (dir == NULL) {
+        return -1;
+    }
+
     char str[MAXPATH];
     strcpy(str, pathname);
     str[strlen(pathname)] = '\0';
@@ -65,6 +76,7 @@ int fs_rmdir(const char *pathname) {
 
     if (index == -1) {
         free(dir);
+        dir = NULL;
         return -1;
     }
 
@@ -73,6 +85,8 @@ int fs_rmdir(const char *pathname) {
     int size = dir->size / fsvcb->blockSize;
     for (int i = 2; i < size; i++) {
         if (dir[i].name[0] != '\0') {
+            free(dir);
+            dir = NULL;
             return -1;
         }
     }
@@ -86,5 +100,6 @@ int fs_rmdir(const char *pathname) {
     freespaceReleaseBlocks(dir[index].location);
 
     free(dir);
+    dir = NULL;
     return 0;
 }
