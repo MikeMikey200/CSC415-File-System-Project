@@ -30,7 +30,7 @@ fileInfo * GetFileInfo (char * fname, int flags) {
         dirEntry * fileEntry = dirInit(INITFILESIZE, currentwd);
         fileEntry->type = 1;
 
-        dirEntryCopy(currentwd, fileEntry, dirFindUnusedEntry(currentwd), fname);
+        dirEntryCopy(currentwd, fileEntry, i, fname);
         dirEntryLoad(currentwd, currentwd);
 
         strcpy(file->fileName, fname);
