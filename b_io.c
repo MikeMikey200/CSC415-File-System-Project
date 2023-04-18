@@ -83,7 +83,7 @@ b_io_fd b_open (char * filename, int flags)
 	if (returnFd == -1)
 		return -1;
 
-	fileInfo *file = GetFileInfo(filename);
+	fileInfo *file = GetFileInfo(filename, flags);
 	if (file == NULL) {
 		return -1;
 	}

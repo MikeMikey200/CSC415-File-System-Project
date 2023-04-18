@@ -1,12 +1,13 @@
 #include <string.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 #include "fsFunction.h"
 #include "dir.h"
 #include "vcb.h"
 #include "fsLow.h"
 
-fileInfo * GetFileInfo (char * fname) {
+fileInfo * GetFileInfo (char * fname, int flags) {
     fileInfo *file = malloc(sizeof(fileInfo));
 
     int size = currentwd->size / fsvcb->blockSize;
@@ -20,19 +21,24 @@ fileInfo * GetFileInfo (char * fname) {
         }
     }
 
-    int i = dirFindUnusedEntry(currentwd);
-    if (i == -1)
+    if (flags & O_CREAT) {
+        int i = dirFindUnusedEntry(currentwd);
+        if (i == -1) {
+            return NULL;
+        }
+
+        dirEntry * fileEntry = dirInit(INITFILESIZE, currentwd);
+        fileEntry->type = 1;
+
+        dirEntryCopy(currentwd, fileEntry, dirFindUnusedEntry(currentwd), fname);
+        dirEntryLoad(currentwd, currentwd);
+
+        strcpy(file->fileName, fname);
+        file->fileSize = currentwd[i].size;
+        file->location = currentwd[i].location;
+        free(fileEntry);
+        return file;
+    } else {
         return NULL;
-
-    dirEntry * fileEntry = dirInit(INITFILESIZE, currentwd);
-    fileEntry->type = 1;
-
-    dirEntryCopy(currentwd, fileEntry, dirFindUnusedEntry(currentwd), fname);
-    dirEntryLoad(currentwd, currentwd);
-
-    strcpy(file->fileName, fname);
-    file->fileSize = currentwd[i].size;
-    file->location = currentwd[i].location;
-    free(fileEntry);
-    return file;
+    }
 }

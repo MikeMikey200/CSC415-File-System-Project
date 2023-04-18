@@ -6,4 +6,4 @@ typedef struct fileInfo {
 	int location;			//starting lba (block number) for the file data
 } fileInfo;
 
-fileInfo * GetFileInfo (char * fname);
+fileInfo * GetFileInfo (char * fname, int flags);

@@ -8,6 +8,11 @@
         "dir.h": "c",
         "stdio.h": "c",
         "string.h": "c",
-        "parsepath.h": "c"
+        "parsepath.h": "c",
+        "types.h": "c",
+        "readline.h": "c",
+        "history.h": "c",
+        "getopt.h": "c",
+        "unistd.h": "c"
     }
 }
