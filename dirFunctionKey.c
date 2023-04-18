@@ -35,6 +35,13 @@ int fs_mkdir(const char *pathname, mode_t mode) {
         return -1;
     }
 
+    index = dirFindUnusedEntry(dir);
+    if (index == -1) {
+        free(dir);
+        dir = NULL;
+        return -1;
+    }
+
     item = dirInit(INITENTRIES, dir);
 
     strcpy(str, pathname);
@@ -46,8 +53,8 @@ int fs_mkdir(const char *pathname, mode_t mode) {
         tokenPrev = token;
         token = strtok_r(NULL, delim, &saveptr);
     }
-
-    dirEntryCopy(dir, item, dirFindUnusedEntry(dir), tokenPrev);
+    
+    dirEntryCopy(dir, item, index, tokenPrev);
     dirEntryLoad(currentwd, currentwd);
 
     free(dir);
