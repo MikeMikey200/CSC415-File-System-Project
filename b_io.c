@@ -19,7 +19,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 #include "b_io.h"
+#include "fsFunction.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
@@ -27,7 +29,8 @@
 typedef struct b_fcb
 	{
 	/** TODO add al the information you need in the file control block **/
-	char * buf;		//holds the open file buffer
+	fileInfo *file;
+	char * buffer;		//holds the open file buffer
 	int index;		//holds the current position in the buffer
 	int buflen;		//holds how many valid bytes are in the buffer
 	} b_fcb;
@@ -42,7 +45,7 @@ void b_init ()
 	//init fcbArray to all free
 	for (int i = 0; i < MAXFCBS; i++)
 		{
-		fcbArray[i].buf = NULL; //indicates a free fcbArray
+		fcbArray[i].buffer = NULL; //indicates a free fcbArray
 		}
 		
 	startup = 1;
@@ -53,7 +56,7 @@ b_io_fd b_getFCB ()
 	{
 	for (int i = 0; i < MAXFCBS; i++)
 		{
-		if (fcbArray[i].buff == NULL)
+		if (fcbArray[i].buffer == NULL)
 			{
 			return i;		//Not thread safe (But do not worry about it for this assignment)
 			}
@@ -79,8 +82,21 @@ b_io_fd b_open (char * filename, int flags)
 	// check for error - all used FCB's
 	if (returnFd == -1)
 		return -1;
+
+	fileInfo *file = GetFileInfo(filename);
+	if (file == NULL) {
+		return -1;
+	}
+
+	fcbArray[returnFd].file = file;
 	
-	
+	fcbArray[returnFd].buffer = malloc(B_CHUNK_SIZE * sizeof(char));
+	if (fcbArray[returnFd].buffer == NULL) {
+		return -1;
+	}
+
+	fcbArray[returnFd].index = 0;
+	fcbArray[returnFd].buflen = 0;
 
 	return (returnFd); // all set
 	}
@@ -156,5 +172,10 @@ int b_read (b_io_fd fd, char * buffer, int count)
 // Interface to Close the file	
 int b_close (b_io_fd fd)
 	{
-
+		if (fcbArray[fd].buffer == NULL) {
+			return -1;
+		}
+		free(fcbArray[fd].buffer);
+		fcbArray[fd].buffer = NULL;
+		free(fcbArray[fd].file);
 	}

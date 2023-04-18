@@ -140,7 +140,7 @@ int fs_isFile(char * filename) {
     } else {
         index = parsePath(str, currentwd, dir);
     }
-
+    
     if (index == -1 || dir[index].type == 0) {
         free(dir);
         dir = NULL;
@@ -182,6 +182,8 @@ int fs_delete(char* filename) {
 
     strcpy(dir[index].name, "\0");
     LBAwrite(dir, dir->size / fsvcb->blockSize, dir->location);
+    dirEntryLoad(currentwd, currentwd);
+
     freespaceReleaseBlocks(dir[index].location);
 
     free(dir);
