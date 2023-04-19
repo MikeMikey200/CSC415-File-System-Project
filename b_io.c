@@ -74,11 +74,16 @@ b_io_fd b_open (char * filename, int flags)
 	//*** TODO ***:  Modify to save or set any information needed
 	//
 	//
+	// different cases of flag options
+	// case 1: O_RDONLY, 0
+
+	// case 2: O_WRONLY, 1
+
+	// case 3: O_RDWR, 2
+	// add cases from command examples
 		
 	if (startup == 0) b_init();  //Initialize our system
 	
-	// get our own file descriptor
-	returnFd = b_getFCB();				
 	// check for error - all used FCB's
 	if (returnFd == -1)
 		return -1;
@@ -87,6 +92,9 @@ b_io_fd b_open (char * filename, int flags)
 	if (file == NULL) {
 		return -1;
 	}
+
+	// get our own file descriptor
+	returnFd = b_getFCB();				
 
 	fcbArray[returnFd].file = file;
 	
