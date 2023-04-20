@@ -33,7 +33,13 @@ int fs_setcwd(char *pathname) {
         return -1;
     }
 
-    dirEntryLoadIndex(currentwd, dir, index);
+    if (dir[index].type == 0) {
+        dirEntryLoadIndex(currentwd, dir, index);
+    } else {
+        free(dir);
+        dir = NULL;
+        return -1;
+    }
 
     free(dir);
     dir = NULL;

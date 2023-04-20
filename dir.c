@@ -8,8 +8,12 @@
 #include "fat.h"
 
 dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
+    unsigned int entry = initNumEntry; 
+    if (initNumEntry == 0) {
+        entry = 2;
+    }
     unsigned int dirEntrySize = sizeof(dirEntry);
-    unsigned int bytesNeeded = initNumEntry * dirEntrySize;
+    unsigned int bytesNeeded = entry * dirEntrySize;
     unsigned int blocksNeeded = (bytesNeeded + fsvcb->blockSize - 1) / fsvcb->blockSize;
     unsigned int bytesUsed = blocksNeeded * fsvcb->blockSize;
     unsigned int numEntry = bytesUsed / dirEntrySize;
@@ -34,8 +38,13 @@ dirEntry * dirInit(unsigned int initNumEntry, dirEntry *parent) {
     dir[0].timeAccess = dir[0].timeCreate;
     dir[0].timeModify = dir[0].timeCreate;
     dir[0].location = startBlock;
-    dir[0].size = bytesNeeded;
-    dir[0].type = 0;
+    if (initNumEntry == 0) {
+        dir[0].size = 0;
+        dir[0].type = 1;
+    } else {
+        dir[0].size = bytesNeeded;
+        dir[0].type = 0;
+    }
 
     // initialize ".."
     // it is a rootDir

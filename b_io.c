@@ -22,6 +22,9 @@
 
 #include "b_io.h"
 #include "fsFunction.h"
+#include "parsePath.h"
+#include "vcb.h"
+#include "dir.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
@@ -83,21 +86,64 @@ b_io_fd b_open (char * filename, int flags)
 	if (returnFd == -1)
 		return -1;
 
-	fileInfo *file = GetFileInfo(filename, flags);
-	if (file == NULL) {
-		return -1;
+	dirEntry * dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
+
+	char str[MAXPATH];
+	strcpy(str, filename);
+	str[strlen(filename)] = '\0';
+
+	int index;
+
+	if (str[0] == '\\') {
+        index = parsePath(str, rootDir, dir);
+    } else {
+        index = parsePath(str, currentwd, dir);
+    }
+
+	strcpy(str, filename);
+    char *saveptr, *tokenPrev;
+    char *delim = "\\";
+    char *token = strtok_r(str, delim, &saveptr);
+    
+    while (token != NULL) {
+        tokenPrev = token;
+        token = strtok_r(NULL, delim, &saveptr);
+    }
+
+	fileInfo *finfo;
+	dirEntry *file;
+
+	if (index == -1) {
+		if (flags & O_CREAT) {
+			file = FileInit (tokenPrev, dir, finfo);
+		} else {
+			free(dir);
+			return -1;
+		}
+
+		if (file == NULL) {
+			free(dir);
+			free(finfo);
+			return -1;
+		}
+	} else {
+		finfo = GetFileInfo(tokenPrev, dir);
+
+		if (finfo == NULL) {
+			free(dir);
+			return -1;
+		}
 	}
 
-	fcbArray[returnFd].file = file;
-	
+	fcbArray[returnFd].file = finfo;
 	fcbArray[returnFd].buffer = malloc(B_CHUNK_SIZE * sizeof(char));
 	if (fcbArray[returnFd].buffer == NULL) {
 		return -1;
 	}
-
 	fcbArray[returnFd].index = 0;
 	fcbArray[returnFd].buflen = 0;
 
+	free(dir);
 	return (returnFd); // all set
 	}
 
@@ -178,4 +224,6 @@ int b_close (b_io_fd fd)
 		free(fcbArray[fd].buffer);
 		fcbArray[fd].buffer = NULL;
 		free(fcbArray[fd].file);
+		fcbArray[fd].file = NULL;
+		return 0;
 	}

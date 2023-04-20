@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <fcntl.h>
 
 #include "fsFunction.h"
@@ -7,38 +8,42 @@
 #include "vcb.h"
 #include "fsLow.h"
 
-fileInfo * GetFileInfo (char * fname, int flags) {
-    fileInfo *file = malloc(sizeof(fileInfo));
+fileInfo * GetFileInfo (char * fname, dirEntry * parent) {
+    fileInfo *finfo = malloc(sizeof(fileInfo));
 
-    int size = currentwd->size / fsvcb->blockSize;
+    int size = parent->size / fsvcb->blockSize;
     for (int i = 2; i < size; i++) {
-        if (strcmp(currentwd[i].name, fname) == 0) {
-            strcpy(file->fileName, fname);
-            file->fileSize = currentwd[i].size;
-            file->location = currentwd[i].location;
-            free(file);
-            return file;
+        if (strcmp(parent[i].name, fname) == 0) {
+            strcpy(finfo->fileName, fname);
+            finfo->fileSize = parent[i].size;
+            finfo->location = parent[i].location;
+            return finfo;
         }
     }
 
-    if (flags & O_CREAT) {
-        int i = dirFindUnusedEntry(currentwd);
-        if (i == -1) {
-            return NULL;
-        }
+    free(finfo);
+    return NULL;
+}
 
-        dirEntry * fileEntry = dirInit(INITFILESIZE, currentwd);
-        fileEntry->type = 1;
-
-        dirEntryCopy(currentwd, fileEntry, i, fname);
-        dirEntryLoad(currentwd, currentwd);
-
-        strcpy(file->fileName, fname);
-        file->fileSize = currentwd[i].size;
-        file->location = currentwd[i].location;
-        free(fileEntry);
-        return file;
-    } else {
+dirEntry *FileInit (char *fname, dirEntry *parent, fileInfo *finfo) {
+    int i = dirFindUnusedEntry(parent);
+    if (i == -1) {
         return NULL;
     }
+
+    dirEntry * fileEntry = dirInit(0, parent);
+    fileEntry->type = 1;
+    dirEntryCopy(parent, fileEntry, i, fname);
+    if (parent->location != currentwd->location) {
+        dirEntryLoad(parent, parent);
+    } else {
+        dirEntryLoad(currentwd, currentwd);
+    }
+    
+    finfo = malloc(sizeof(fileInfo));
+
+    strcpy(finfo->fileName, fname);
+    finfo->fileSize = parent[i].size;
+    finfo->location = parent[i].location;
+    return fileEntry;
 }

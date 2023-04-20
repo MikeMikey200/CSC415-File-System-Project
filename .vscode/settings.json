@@ -13,6 +13,7 @@
         "readline.h": "c",
         "history.h": "c",
         "getopt.h": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "fsfunction.h": "c"
     }
 }
