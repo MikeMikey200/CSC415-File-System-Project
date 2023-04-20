@@ -1,7 +1,7 @@
 /**************************************************************
 * Class: CSC-415-03 Spring 2023
-* Names: Minh Dang, Sabrina Diaz-Erazo, Trinity Godwin, Karma Namgyal Ghale
-* Student IDs: 921210261, 916931527, 918448783, 921425775
+* Names: Minh Dang, Sabrina Diaz-Erazo, Trinity Godwin
+* Student IDs: 921210261, 916931527, 918448783
 * GitHub Name: MikeMikey200
 * Group Name: Wanna Cry
 * Project: Basic File System
