@@ -21,7 +21,16 @@ int freespaceAllocateBlocks(unsigned int startLocation, unsigned int blockNum) {
 	if (startLocation >= fsvcb->blockNum)
 		return -1;
 
+	if (blockNum == 0)
+		return 0;
+
 	num = freespaceFindFreeBlock(freespace);
+
+	while (freespace[startLocation].next != 0) {
+		startLocation = freespace[startLocation].next;
+	}
+
+	freespace[startLocation].next = num;
 
 	for(i = 0; i < blockNum; i++) {
 		startLocation = num;
@@ -63,6 +72,13 @@ int freespaceReleaseBlocks(unsigned int startLocation) {
 	LBAwrite(freespace, fsvcb->locationRootDir - fsvcb->locationFreespace, fsvcb->locationFreespace);
 
 	return total + 1;
+}
+
+unsigned int freespaceNextBlock(unsigned int location) {
+	if (location == 0) {
+		return 0;
+	}
+	return freespace[location].next;
 }
 
 void freespaceInit() {

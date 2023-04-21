@@ -6,6 +6,7 @@
 #include "fsFunction.h"
 #include "dir.h"
 #include "vcb.h"
+#include "fat.h"
 #include "fsLow.h"
 
 fileInfo * GetFileInfo (char * fname, dirEntry * parent) {
@@ -44,6 +45,9 @@ dirEntry *FileInit (char *fname, dirEntry *parent, fileInfo *finfo) {
 
     strcpy(finfo->fileName, fname);
     finfo->fileSize = parent[i].size;
-    finfo->location = parent[i].location;
+    freespaceAllocateBlocks(parent[i].location, 1);
+    int location = freespaceNextBlock(parent[i].location);
+    location = freespaceNextBlock(location);
+    finfo->location = location;
     return fileEntry;
 }

@@ -143,7 +143,7 @@ b_io_fd b_open (char * filename, int flags)
 	// get our own file descriptor
 	returnFd = b_getFCB();				
 
-	fcbArray[returnFd].file = file;
+	fcbArray[returnFd].file = finfo;
 	
 	fcbArray[returnFd].buffer = malloc(B_CHUNK_SIZE * sizeof(char));
 	if (fcbArray[returnFd].buffer == NULL) {
@@ -230,9 +230,11 @@ int b_close (b_io_fd fd)
 		if (fcbArray[fd].buffer == NULL) {
 			return -1;
 		}
+		/*
 		free(fcbArray[fd].buffer);
 		fcbArray[fd].buffer = NULL;
 		free(fcbArray[fd].file);
 		fcbArray[fd].file = NULL;
+		*/
 		return 0;
 	}
