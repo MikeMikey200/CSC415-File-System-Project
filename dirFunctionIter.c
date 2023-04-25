@@ -17,7 +17,6 @@ fdDir * fs_opendir(const char *pathname) {
     str[strlen(pathname)] = '\0';
     int index;
 
-
     if (str[0] == '\\') {
         index = parsePath(str, rootDir, dir);
     } else {

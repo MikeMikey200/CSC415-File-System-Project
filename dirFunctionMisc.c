@@ -15,16 +15,12 @@ int fs_setcwd(char *pathname) {
         return -1;
     }
 
-    char str[MAXPATH];
-    strcpy(str, pathname);
-    str[strlen(pathname)] = '\0';
-
     int index;
 
-    if (str[0] == '\\') {
-        index = parsePath(str, rootDir, dir);
+    if (pathname[0] == '\\') {
+        index = parsePath(pathname, rootDir, dir);
     } else {
-        index = parsePath(str, currentwd, dir);
+        index = parsePath(pathname, currentwd, dir);
     }
 
     if (index == -1) {
@@ -96,6 +92,10 @@ char *fs_getcwd(char *pathname, size_t size) {
     }
     strcpy(pathname, str);
 
+    if (strlen(pathname) == 0) {
+        strcat(pathname, "\\");
+    }
+
     free(dir);
     dir = NULL;
     return pathname;
@@ -105,17 +105,14 @@ int fs_isDir(char * pathname) {
     dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
     if (dir == NULL) {
         return 0;
-    }
+    } 
 
-    char str[MAXPATH];
-    strcpy(str, pathname);
-    str[strlen(pathname)] = '\0';
     int index;
 
-    if (str[0] == '\\') {
-        index = parsePath(str, rootDir, dir);
+    if (pathname[0] == '\\') {
+        index = parsePath(pathname, rootDir, dir);
     } else {
-        index = parsePath(str, currentwd, dir);
+        index = parsePath(pathname, currentwd, dir);
     }
 
     if (dir[index].type == 0) {
@@ -136,15 +133,12 @@ int fs_isFile(char * filename) {
         return 0;
     }
 
-    char str[MAXPATH];
-    strcpy(str, filename);
-    str[strlen(filename)] = '\0';
     int index;
 
-    if (str[0] == '\\') {
-        index = parsePath(str, rootDir, dir);
+    if (filename[0] == '\\') {
+        index = parsePath(filename, rootDir, dir);
     } else {
-        index = parsePath(str, currentwd, dir);
+        index = parsePath(filename, currentwd, dir);
     }
     
     if (index == -1 || dir[index].type == 0) {
@@ -170,15 +164,12 @@ int fs_delete(char* filename) {
         return -1;
     }
 
-    char str[MAXPATH];
-    strcpy(str, filename);
-    str[strlen(filename)] = '\0';
     int index;
 
-    if (str[0] == '\\') {
-        index = parsePath(str, rootDir, dir);
+    if (filename[0] == '\\') {
+        index = parsePath(filename, rootDir, dir);
     } else {
-        index = parsePath(str, currentwd, dir);
+        index = parsePath(filename, currentwd, dir);
     }
 
     if (index == -1 || dir[index].type == 0) {

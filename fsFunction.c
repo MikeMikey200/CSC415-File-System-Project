@@ -17,7 +17,9 @@ fileInfo * GetFileInfo (char * fname, dirEntry * parent) {
         if (strcmp(parent[i].name, fname) == 0) {
             strcpy(finfo->fileName, fname);
             finfo->fileSize = parent[i].size;
-            finfo->location = parent[i].location;
+            int location = freespaceNextBlock(parent[i].location);
+            location = freespaceNextBlock(location);
+            finfo->location = location;
             return finfo;
         }
     }

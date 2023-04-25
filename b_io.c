@@ -24,6 +24,7 @@
 #include "fsFunction.h"
 #include "parsePath.h"
 #include "vcb.h"
+#include "fat.h"
 #include "dir.h"
 
 #define MAXFCBS 20
@@ -34,8 +35,10 @@ typedef struct b_fcb
 	/** TODO add al the information you need in the file control block **/
 	fileInfo *file;
 	char * buffer;		//holds the open file buffer
-	int index;		//holds the current position in the buffer
-	int buflen;		//holds how many valid bytes are in the buffer
+	int bufferOffset;		//holds the current position in the buffer
+	int fileOffset;
+	int blockNum;
+	int location;
 	} b_fcb;
 	
 b_fcb fcbArray[MAXFCBS];
@@ -149,8 +152,10 @@ b_io_fd b_open (char * filename, int flags)
 	if (fcbArray[returnFd].buffer == NULL) {
 		return -1;
 	}
-	fcbArray[returnFd].index = 0;
-	fcbArray[returnFd].buflen = 0;
+	fcbArray[returnFd].bufferOffset = 0;
+	fcbArray[returnFd].fileOffset = 0;
+	fcbArray[returnFd].blockNum = (fcbArray[returnFd].file->fileSize + fsvcb->blockSize - 1) / fsvcb->blockSize;
+	fcbArray[returnFd].location = fcbArray[returnFd].file->location;
 
 	free(dir);
 	return (returnFd); // all set
@@ -167,7 +172,8 @@ int b_seek (b_io_fd fd, off_t offset, int whence)
 		{
 		return (-1); 					//invalid file descriptor
 		}
-		
+
+	// temporarily ignore this function professor cmds is not using this, we'll be using this somewhere
 		
 	return (0); //Change this
 	}
@@ -215,11 +221,66 @@ int b_read (b_io_fd fd, char * buffer, int count)
 
 	if (startup == 0) b_init();  //Initialize our system
 
+	
+
 	// check that fd is between 0 and (MAXFCBS-1)
 	if ((fd < 0) || (fd >= MAXFCBS))
 		{
 		return (-1); 					//invalid file descriptor
 		}
+
+	/*
+	count
+	count > remainder
+	part 1 = remainder
+	leftover = count - part 1
+	blockCnt = leftover / fsvcb->blockSize
+	part 2 = blockCnt * fsvcb->blockSize
+	part 3 = leftover - part 2
+
+	part 1 fill up your buffer to the remainder
+	part 2 fill directly to the caller's buffer
+	part 3 fill up your buffer again with new index
+	*/
+
+	if (count + fcbArray[fd].fileOffset > fcbArray[fd].file->fileSize) {
+		count = fcbArray[fd].file->fileSize - fcbArray[fd].fileOffset;
+	}
+
+	// remainder in the block B_CHUNK_SIZE - current index
+	int currentBlock = fcbArray[fd].fileOffset / fsvcb->blockSize;
+	int remainder = fcbArray[fd].fileOffset % fsvcb->blockSize;
+	int part1, part2, part3, leftover, blockCnt, read, location;
+	if (count > remainder) {
+		part1 = remainder;
+		leftover = count - part1;
+		blockCnt = leftover / fsvcb->blockSize;
+		part2 = blockCnt * fsvcb->blockSize;
+		part3 = leftover - part2;
+	} else {
+		part1 = count;
+		part2 = 0;
+		part3 = 0;
+	}
+
+	if (part1 > 0) {
+		memcpy(buffer, fcbArray[fd].buffer + fcbArray[fd].bufferOffset, part1);
+		fcbArray[fd].bufferOffset += part1;
+		fcbArray[fd].fileOffset += part1;
+	}
+
+	if (part2 > 0) {
+		location = freespaceNextBlock(fcbArray[fd].location);
+		fcbArray[fd].location = location;
+		read = LBAread(buffer + part1, 1, location);
+		part2 = read * fsvcb->blockSize;
+	}
+
+	if (part3 > 0) {
+		read = LBAread(fcbArray[fd].buffer, 1, fcbArray[fd].location);
+	}
+
+
 		
 	return (0);	//Change this
 	}
