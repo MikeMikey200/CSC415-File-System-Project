@@ -23,6 +23,7 @@
 #include "b_io.h"
 #include "fsFunction.h"
 #include "parsePath.h"
+#include "fsLow.h"
 #include "vcb.h"
 #include "fat.h"
 #include "dir.h"

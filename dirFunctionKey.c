@@ -44,7 +44,6 @@ int fs_mkdir(const char *pathname, mode_t mode) {
 
     item = dirInit(INITENTRIES, dir);
 
-    strcpy(str, pathname);
     char *saveptr, *tokenPrev;
     char *delim = "\\";
     char *token = strtok_r(str, delim, &saveptr);
