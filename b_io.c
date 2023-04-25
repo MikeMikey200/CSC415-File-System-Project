@@ -39,6 +39,7 @@ typedef struct b_fcb
 	int fileOffset;
 	int blockNum;
 	int location;
+	int flag;       //specifies if file is read only (0), write only (1), or read/write (2)
 	} b_fcb;
 	
 b_fcb fcbArray[MAXFCBS];
@@ -80,13 +81,6 @@ b_io_fd b_open (char * filename, int flags)
 	//*** TODO ***:  Modify to save or set any information needed
 	//
 	//
-	// different cases of flag options
-	// case 1: O_RDONLY, 0
-
-	// case 2: O_WRONLY, 1
-
-	// case 3: O_RDWR, 2
-	// add cases from command examples
 		
 	if (startup == 0) b_init();  //Initialize our system
 	
@@ -145,6 +139,47 @@ b_io_fd b_open (char * filename, int flags)
 
 	// get our own file descriptor
 	returnFd = b_getFCB();				
+
+	// different cases of flag options
+    // O_RDONLY, 0
+    if (flags & O_RDONLY) {
+        // check if create and/or truncate flag is listed
+        if ((flags & O_CREAT) || (flags & O_TRUNC)) {
+            // error
+            // exit out of if statement
+        }
+        // keep O_RDONLY flag inside FCB
+        fcbArray[returnFd].flag = 0;
+
+    }
+
+    // O_WRONLY | O_CREAT
+    if ((flags & O_WRONLY) && (flags & O_CREAT)) {
+        // keep O_WRONLY flag inside FCB
+        fcbArray[returnFd].flag = 1;
+        // is this flag already covered?
+
+        //if file does not exist, create it
+
+    }
+
+    // O_WRONLY | O_CREAT | O_TRUNC
+    if ((flags & O_WRONLY ) && (flags & O_CREAT) && (flags & O_TRUNC)) {
+        // keep O_WRONLY flag inside FCB
+        fcbArray[returnFd].flag = 1;
+
+        //if file does not exist, create it
+
+        //else truncate file to 0 length
+
+    }
+
+    // O_RDWR
+    if (flags & O_RDWR) {
+        // keep O_RDWR flag inside FCB
+        fcbArray[returnFd].flag = 2;
+
+    }
 
 	fcbArray[returnFd].file = finfo;
 	
