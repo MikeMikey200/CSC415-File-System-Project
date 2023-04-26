@@ -7,4 +7,4 @@ typedef struct fileInfo {
 } fileInfo;
 
 fileInfo * GetFileInfo (char * fname, dirEntry * parent);
-dirEntry *FileInit (char *fname, dirEntry *parent, fileInfo *file);
+fileInfo *FileInit(char *fname, dirEntry *parent);

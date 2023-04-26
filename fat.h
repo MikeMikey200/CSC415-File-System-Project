@@ -61,4 +61,8 @@ int freespaceReleaseBlocks(unsigned int startLocation);
 
 unsigned int freespaceNextBlock(unsigned int location);
 
+unsigned int freespaceEndBlock(unsigned int location);
+
+unsigned int freespaceTotalAllocated(unsigned int location);
+
 #endif /* FAT_H */

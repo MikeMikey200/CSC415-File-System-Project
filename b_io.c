@@ -36,11 +36,12 @@ typedef struct b_fcb
 	/** TODO add al the information you need in the file control block **/
 	fileInfo *file;
 	char * buffer;		//holds the open file buffer
-	int bufferOffset;		//holds the current position in the buffer
-	int fileOffset;
-	int blockNum;
+	int fileOffset;		//holds the current position in the buffer
 	int location;
-	int flag;       //specifies if file is read only (0), write only (1), or read/write (2)
+	int locationEnd;
+	int buflen;			//size of current text block
+	int flags;       	//specifies if file is read only (0), write only (1), or read/write (2)
+	int totalAllocated;
 	} b_fcb;
 	
 b_fcb fcbArray[MAXFCBS];
@@ -114,19 +115,12 @@ b_io_fd b_open (char * filename, int flags)
     }
 
 	fileInfo *finfo;
-	dirEntry *file;
 
 	if (index == -1) {
-		if (flags & O_CREAT) {
-			file = FileInit (tokenPrev, dir, finfo);
+		if (flags & O_CREAT && (flags & O_WRONLY || flags & O_RDWR)) {
+			finfo = FileInit (tokenPrev, dir);
 		} else {
 			free(dir);
-			return -1;
-		}
-
-		if (file == NULL) {
-			free(dir);
-			free(finfo);
 			return -1;
 		}
 	} else {
@@ -140,6 +134,9 @@ b_io_fd b_open (char * filename, int flags)
 
 	// get our own file descriptor
 	returnFd = b_getFCB();				
+
+	/*
+	these are not necessary
 
 	// different cases of flag options
     // O_RDONLY, 0
@@ -181,18 +178,32 @@ b_io_fd b_open (char * filename, int flags)
         fcbArray[returnFd].flag = 2;
 
     }
+	*/
 
 	fcbArray[returnFd].file = finfo;
-	
-	fcbArray[returnFd].buffer = malloc(B_CHUNK_SIZE * sizeof(char));
+	if (flags & O_TRUNC && (flags & O_WRONLY || flags & O_RDWR)) {
+		fcbArray[returnFd].file->fileSize = 0;
+		if (freespaceFindFreeBlock(fcbArray[returnFd].file->location) != 0) {
+			freespaceReleaseBlocks(freespaceNextBlock(fcbArray[returnFd].file->location));
+		}
+	}
+	fcbArray[returnFd].buffer = malloc(fsvcb->blockSize * sizeof(char));
 	if (fcbArray[returnFd].buffer == NULL) {
 		return -1;
 	}
-	fcbArray[returnFd].bufferOffset = 0;
-	fcbArray[returnFd].fileOffset = 0;
-	fcbArray[returnFd].blockNum = (fcbArray[returnFd].file->fileSize + fsvcb->blockSize - 1) / fsvcb->blockSize;
+	if (flags & O_APPEND) {
+		fcbArray[returnFd].fileOffset = fcbArray[returnFd].file->fileSize;
+	} else {
+		fcbArray[returnFd].fileOffset = 0;
+	}
 	fcbArray[returnFd].location = fcbArray[returnFd].file->location;
+	fcbArray[returnFd].locationEnd = freespaceEndBlock(fcbArray[returnFd].file->location);
+	fcbArray[returnFd].totalAllocated = freespaceTotalAllocated(freespaceNextBlock(fcbArray[returnFd].file->location));
+	fcbArray[returnFd].flags = flags;
 
+	printf("b_open allocation = %d\n", fcbArray[returnFd].totalAllocated);
+	printf("b_open locationEnd location = %d %d\n", fcbArray[returnFd].locationEnd, fcbArray[returnFd].location);
+	
 	free(dir);
 	return (returnFd); // all set
 	}
@@ -210,6 +221,8 @@ int b_seek (b_io_fd fd, off_t offset, int whence)
 		}
 
 	// temporarily ignore this function professor cmds is not using this, we'll be using this somewhere
+	// changing the offset
+	// reload your buffer
 		
 	return (0); //Change this
 	}
@@ -227,6 +240,24 @@ int b_write (b_io_fd fd, char * buffer, int count)
 		return (-1); 					//invalid file descriptor
 		}
 		
+	/*
+	similar to b_read
+
+	part 1 write to the remaining block
+	part 2 write the blocks
+	part 3 write the remaining on the new block
+
+	give them a big number number like 50 blocks
+	*/
+
+	int block = 50;
+	block = freespaceAllocateBlocks(fcbArray[fd].location, block);
+
+	if (block == 0) {
+		return 0;
+	}
+
+	
 		
 	return (0); //Change this
 	}
@@ -257,13 +288,15 @@ int b_read (b_io_fd fd, char * buffer, int count)
 
 	if (startup == 0) b_init();  //Initialize our system
 
-	
-
 	// check that fd is between 0 and (MAXFCBS-1)
 	if ((fd < 0) || (fd >= MAXFCBS))
 		{
 		return (-1); 					//invalid file descriptor
 		}
+
+	if (!(fcbArray[fd].flags & O_RDONLY || fcbArray[fd].flags & O_RDWR)) {
+		return -1;
+	}
 
 	/*
 	count
@@ -285,7 +318,7 @@ int b_read (b_io_fd fd, char * buffer, int count)
 
 	// remainder in the block B_CHUNK_SIZE - current index
 	int currentBlock = fcbArray[fd].fileOffset / fsvcb->blockSize;
-	int remainder = fcbArray[fd].fileOffset % fsvcb->blockSize;
+	int remainder = fsvcb->blockSize - fcbArray[fd].fileOffset % fsvcb->blockSize;
 	int part1, part2, part3, leftover, blockCnt, read, location;
 	if (count > remainder) {
 		part1 = remainder;
@@ -300,25 +333,36 @@ int b_read (b_io_fd fd, char * buffer, int count)
 	}
 
 	if (part1 > 0) {
-		memcpy(buffer, fcbArray[fd].buffer + fcbArray[fd].bufferOffset, part1);
-		fcbArray[fd].bufferOffset += part1;
+		memcpy(buffer, fcbArray[fd].buffer + fcbArray[fd].fileOffset % fsvcb->blockSize, part1);
 		fcbArray[fd].fileOffset += part1;
 	}
 
 	if (part2 > 0) {
-		location = freespaceNextBlock(fcbArray[fd].location);
-		fcbArray[fd].location = location;
-		read = LBAread(buffer + part1, 1, location);
-		part2 = read * fsvcb->blockSize;
+		int temp = 0;
+		for (int i = 0; i < blockCnt; i++) {
+			location = freespaceNextBlock(fcbArray[fd].location);
+			fcbArray[fd].location = location;
+			read = LBAread(buffer + part1 + temp, 1, location);
+			temp += read * fsvcb->blockSize;
+		}
+		part2 = temp;
+		fcbArray[fd].fileOffset += part2;
 	}
 
 	if (part3 > 0) {
 		read = LBAread(fcbArray[fd].buffer, 1, fcbArray[fd].location);
+		read = read * fsvcb->blockSize;
+		if (read < part3) {
+			part3 = read;
+		}
+
+		if (part3 > 0) {
+			memcpy(buffer + part1 + part2, fcbArray[fd].buffer + fcbArray[fd].fileOffset % fsvcb->blockSize, part3);
+			fcbArray[fd].fileOffset += part3;
+		}
 	}
 
-
-		
-	return (0);	//Change this
+	return part1 + part2 + part3;
 	}
 	
 // Interface to Close the file	
@@ -327,11 +371,10 @@ int b_close (b_io_fd fd)
 		if (fcbArray[fd].buffer == NULL) {
 			return -1;
 		}
-		/*
+		
 		free(fcbArray[fd].buffer);
 		fcbArray[fd].buffer = NULL;
-		free(fcbArray[fd].file);
 		fcbArray[fd].file = NULL;
-		*/
+		
 		return 0;
 	}

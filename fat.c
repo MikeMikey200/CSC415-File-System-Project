@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "fsLow.h"
 #include "fat.h"
@@ -23,6 +24,10 @@ int freespaceAllocateBlocks(unsigned int startLocation, unsigned int blockNum) {
 
 	if (blockNum == 0)
 		return 0;
+	
+	if (blockNum > fsvcb->blockNumFree) {
+		blockNum = fsvcb->blockNumFree;
+	}
 
 	num = freespaceFindFreeBlock(freespace);
 
@@ -86,4 +91,32 @@ void freespaceInit() {
 		freespace[i].next = 0;
 		freespace[i].used = 0;
 	}
+}
+
+unsigned int freespaceEndBlock(unsigned int location) {
+	if (location == 0) {
+		return 0;
+	}
+
+	int locationBefore = location;
+	while (location != 0) {
+		locationBefore = location;
+		location = freespaceNextBlock(location);
+	}
+
+	return locationBefore;
+}
+
+unsigned int freespaceTotalAllocated(unsigned int location) {
+	if (location == 0) {
+		return 0;
+	}
+
+	int total = 0;
+	while (location != 0) {
+		location = freespaceNextBlock(location);
+		total++;
+	}
+	total++;
+	return total;
 }

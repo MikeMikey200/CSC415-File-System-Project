@@ -17,9 +17,7 @@ fileInfo * GetFileInfo (char * fname, dirEntry * parent) {
         if (strcmp(parent[i].name, fname) == 0) {
             strcpy(finfo->fileName, fname);
             finfo->fileSize = parent[i].size;
-            int location = freespaceNextBlock(parent[i].location);
-            location = freespaceNextBlock(location);
-            finfo->location = location;
+            finfo->location = freespaceNextBlock(parent[i].location);
             return finfo;
         }
     }
@@ -28,7 +26,7 @@ fileInfo * GetFileInfo (char * fname, dirEntry * parent) {
     return NULL;
 }
 
-dirEntry *FileInit (char *fname, dirEntry *parent, fileInfo *finfo) {
+fileInfo *FileInit(char *fname, dirEntry *parent) {
     int i = dirFindUnusedEntry(parent);
     if (i == -1) {
         return NULL;
@@ -42,14 +40,12 @@ dirEntry *FileInit (char *fname, dirEntry *parent, fileInfo *finfo) {
     } else {
         dirEntryLoad(currentwd, currentwd);
     }
+    free(fileEntry);
     
-    finfo = malloc(sizeof(fileInfo));
+    fileInfo *finfo = malloc(sizeof(fileInfo));
 
     strcpy(finfo->fileName, fname);
     finfo->fileSize = parent[i].size;
-    freespaceAllocateBlocks(parent[i].location, 1);
-    int location = freespaceNextBlock(parent[i].location);
-    location = freespaceNextBlock(location);
-    finfo->location = location;
-    return fileEntry;
+    finfo->location = freespaceNextBlock(parent[i].location);
+    return finfo;
 }
