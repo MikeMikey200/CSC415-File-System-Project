@@ -16,11 +16,10 @@ int fs_mkdir(const char *pathname, mode_t mode) {
     if (dir == NULL) {
         return -1;
     }
-
+    //parsepath doesn't take const so a copy is made and passed
     dirEntry *item;
     char str[MAXPATH];
     strcpy(str, pathname);
-    str[strlen(pathname)] = '\0';
     int index;
 
     if (str[0] == '\\') {
