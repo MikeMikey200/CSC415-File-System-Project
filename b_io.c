@@ -240,6 +240,10 @@ int b_write (b_io_fd fd, char * buffer, int count)
 		return (-1); 					//invalid file descriptor
 		}
 		
+	if (!(fcbArray[fd].flags & O_WRONLY || fcbArray[fd].flags & O_RDWR)) {
+		return -1;
+	}
+
 	/*
 	similar to b_read
 
