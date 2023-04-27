@@ -257,13 +257,62 @@ int b_write (b_io_fd fd, char * buffer, int count)
 	int block = 50;
 	block = freespaceAllocateBlocks(fcbArray[fd].location, block);
 
-	if (block == 0) {
+	if (block == 0)
 		return 0;
+
+	if (count + fcbArray[fd].fileOffset > fcbArray[fd].file->fileSize)
+		count = fcbArray[fd].file->fileSize - fcbArray[fd].fileOffset;
+
+	int currentBlock = fcbArray[fd].fileOffset / fsvcb->blockSize;
+	int remainder = (fsvcb->blockSize - fcbArray[fd].fileOffset) % fsvcb->blockSize;
+	int part1 = 0, part2 = 0, part3 = 0;
+	int leftOver, blockCount, write;
+	
+	if(count > remainder)
+	{
+		part1 = remainder;
+		leftOver = count - part1;
+		blockCount = leftOver / fsvcb->blockSize;
+		part2 = blockCount * fsvcb->blockSize;
+		part3 = leftOver - part2;
+	} else {
+		part1 = count;
 	}
 
+	if (part1 > 0)
+	{
+		memcpy(fcbArray[fd].buffer + fcbArray[fd].fileOffset % fsvcb->blockSize, buffer, part1);
+		fcbArray[fd].fileOffset += part1;
+	}
+
+	if(part2 > 0)
+	{
+		int temp = 0;
+		for (int i = 0; i < blockCount; i++) {
+			fcbArray[fd].location = freespaceNextBlock(fcbArray[fd].location);
+			write = LBAwrite(buffer + part1 + temp, 1, fcbArray[fd].location);
+			temp += write * fsvcb->blockSize;
+		}
+		part2 = temp;
+		fcbArray[fd].fileOffset += part2;
+	}
 	
+	if (part3 > 0) 
+	{
+		write = LBAwrite(fcbArray[fd].buffer, 1, fcbArray[fd].location);
+		write = write * fsvcb->blockSize;
+
+		if (write < part3)
+			part3 = write;
+
+		if (part3 > 0) 
+		{
+			memcpy(fcbArray[fd].buffer + fcbArray[fd].fileOffset % fsvcb->blockSize, buffer + part1 + part2, part3);
+			fcbArray[fd].fileOffset += part3;
+		}
+	}
 		
-	return (0); //Change this
+	return part1 + part2 + part3;
 	}
 
 
