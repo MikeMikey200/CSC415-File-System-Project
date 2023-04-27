@@ -371,21 +371,15 @@ int cmd_mv (int argcnt, char *argvec[])
 	char buf[BUFFERLEN];
 	switch (argcnt)
 		{
-		case 2:	//only one name provided
-			src = argvec[1];
-			dest = src;
-			break;
-			
 		case 3:
 			src = argvec[1];
-			dest = strcat(argvec[2], src);
+			dest = argvec[2];
 			break;
 		
 		default:
 			printf("Usage: mv srcfile destfile\n");
 			return (-1);
 		}
-	
 	
 	testfs_src_fd = b_open (src, O_RDONLY);
 	testfs_dest_fd = b_open (dest, O_WRONLY | O_CREAT | O_TRUNC);
