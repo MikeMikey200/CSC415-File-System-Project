@@ -180,11 +180,17 @@ int b_seek (b_io_fd fd, off_t offset, int whence)
 		return (-1); 					//invalid file descriptor
 		}
 
-	// temporarily ignore this function professor cmds is not using this, we'll be using this somewhere
-	// changing the offset
-	// reload your buffer
+	if ((whence + 1) & (SEEK_SET + 1)) {
+		fcbArray[fd].fileOffset = offset;
+	} else if (whence & SEEK_CUR) {
+		fcbArray[fd].fileOffset += offset;
+	} else if (whence & SEEK_END) {
+		fcbArray[fd].fileOffset = fcbArray[fd].file->fileSize + offset;
+	} else {
+		return -1;
+	}
 		
-	return (0); //Change this
+	return fcbArray[fd].fileOffset; //Change this
 	}
 
 
