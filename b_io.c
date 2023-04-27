@@ -298,6 +298,9 @@ int b_read (b_io_fd fd, char * buffer, int count)
 		return -1;
 	}
 
+	if (fcbArray[fd].totalAllocated == 0) {
+		return 0;
+	}
 	/*
 	count
 	count > remainder
