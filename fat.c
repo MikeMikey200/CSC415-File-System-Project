@@ -121,6 +121,6 @@ unsigned int freespaceTotalAllocated(unsigned int location) {
 		location = freespaceNextBlock(location);
 		total++;
 	}
-	total++;
+
 	return total;
 }
