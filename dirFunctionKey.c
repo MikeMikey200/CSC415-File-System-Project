@@ -87,7 +87,7 @@ int fs_rmdir(const char *pathname) {
 
     dirEntryLoadIndex(dir, dir, index);
 
-    int size = dir->size / fsvcb->blockSize;
+    int size = dir->size / sizeof(dirEntry);
     for (int i = 2; i < size; i++) {
         if (dir[i].name[0] != '\0') {
             free(dir);
@@ -99,7 +99,7 @@ int fs_rmdir(const char *pathname) {
     dirEntryLoadIndex(dir, dir, 1);
 
     strcpy(dir[index].name, "\0");
-    LBAwrite(dir, dir->size / fsvcb->blockSize, dir->location);
+    LBAwrite(dir, (dir->size + fsvcb->blockSize - 1) / fsvcb->blockSize, dir->location);
     dirEntryLoad(currentwd, currentwd);
 
     freespaceReleaseBlocks(dir[index].location);

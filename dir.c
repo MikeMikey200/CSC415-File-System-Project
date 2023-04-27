@@ -105,19 +105,19 @@ void dirEntryCopy (dirEntry *destination, dirEntry *source, unsigned int index, 
     destination[index].timeAccess = source->timeAccess;
     destination[index].timeModify = source->timeModify;
     destination[index].type = source->type;
-    LBAwrite(destination, destination->size / fsvcb->blockSize, destination->location);
+    LBAwrite(destination, (destination->size + fsvcb->blockSize - 1 )/ fsvcb->blockSize, destination->location);
 }
 
 void dirEntryLoadIndex(dirEntry *destination, dirEntry *source, unsigned int index) {
-    LBAread(destination, source[index].size / fsvcb->blockSize, source[index].location);
+    LBAread(destination, (source[index].size + fsvcb->blockSize - 1) / fsvcb->blockSize, source[index].location);
 }
 
 void dirEntryLoad(dirEntry *destination, dirEntry *source) {
-    LBAread(destination, source->size / fsvcb->blockSize, source->location);
+    LBAread(destination, (source->size + fsvcb->blockSize - 1) / fsvcb->blockSize, source->location);
 }
 
 char *dirFindName(dirEntry *dir, unsigned int location) {
-    int size = dir->size / fsvcb->blockSize;
+    int size = dir->size / sizeof(dirEntry);
 
     for(int i = 2; i < size; i++) {
         if(dir[i].location == location) {

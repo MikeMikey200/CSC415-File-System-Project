@@ -62,6 +62,10 @@ int freespaceReleaseBlocks(unsigned int startLocation) {
 		return -1;
 	}
 
+	if (startLocation == 0) {
+		return 0;
+	}
+
 	for(i = startLocation; freespace[i].next != 0;) {
 		num = i;
 		i = freespace[i].next;

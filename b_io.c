@@ -40,8 +40,9 @@ typedef struct b_fcb
 	int location;
 	int locationEnd;
 	int buflen;			//size of current text block
-	int flags;       	//specifies if file is read only (0), write only (1), or read/write (2)
-	int totalAllocated;
+	int read;
+	int write;
+	int unusedBlock;
 	} b_fcb;
 	
 b_fcb fcbArray[MAXFCBS];
@@ -94,7 +95,6 @@ b_io_fd b_open (char * filename, int flags)
 
 	char str[MAXPATH];
 	strcpy(str, filename);
-	str[strlen(filename)] = '\0';
 
 	int index;
 
@@ -118,13 +118,13 @@ b_io_fd b_open (char * filename, int flags)
 
 	if (index == -1) {
 		if (flags & O_CREAT && (flags & O_WRONLY || flags & O_RDWR)) {
-			finfo = FileInit (tokenPrev, dir);
+			finfo = FileInit (tokenPrev, filename, dir);
 		} else {
 			free(dir);
 			return -1;
 		}
 	} else {
-		finfo = GetFileInfo(tokenPrev, dir);
+		finfo = GetFileInfo(tokenPrev, filename, dir);
 
 		if (finfo == NULL) {
 			free(dir);
@@ -133,52 +133,7 @@ b_io_fd b_open (char * filename, int flags)
 	}
 
 	// get our own file descriptor
-	returnFd = b_getFCB();				
-
-	/*
-	these are not necessary
-
-	// different cases of flag options
-    // O_RDONLY, 0
-    if (flags & O_RDONLY) {
-        // check if create and/or truncate flag is listed
-        if ((flags & O_CREAT) || (flags & O_TRUNC)) {
-            // error
-            // exit out of if statement
-        }
-        // keep O_RDONLY flag inside FCB
-        fcbArray[returnFd].flag = 0;
-
-    }
-
-    // O_WRONLY | O_CREAT
-    if ((flags & O_WRONLY) && (flags & O_CREAT)) {
-        // keep O_WRONLY flag inside FCB
-        fcbArray[returnFd].flag = 1;
-        // is this flag already covered?
-
-        //if file does not exist, create it
-
-    }
-
-    // O_WRONLY | O_CREAT | O_TRUNC
-    if ((flags & O_WRONLY ) && (flags & O_CREAT) && (flags & O_TRUNC)) {
-        // keep O_WRONLY flag inside FCB
-        fcbArray[returnFd].flag = 1;
-
-        //if file does not exist, create it
-
-        //else truncate file to 0 length
-
-    }
-
-    // O_RDWR
-    if (flags & O_RDWR) {
-        // keep O_RDWR flag inside FCB
-        fcbArray[returnFd].flag = 2;
-
-    }
-	*/
+	returnFd = b_getFCB();	
 
 	fcbArray[returnFd].file = finfo;
 	if (flags & O_TRUNC && (flags & O_WRONLY || flags & O_RDWR)) {
@@ -198,11 +153,21 @@ b_io_fd b_open (char * filename, int flags)
 	}
 	fcbArray[returnFd].location = fcbArray[returnFd].file->location;
 	fcbArray[returnFd].locationEnd = freespaceEndBlock(fcbArray[returnFd].file->location);
-	fcbArray[returnFd].totalAllocated = freespaceTotalAllocated(freespaceNextBlock(fcbArray[returnFd].file->location));
-	fcbArray[returnFd].flags = flags;
+	if (((flags + 1) & (O_RDONLY + 1)) || flags & O_RDWR) {
+		fcbArray[returnFd].read = 1;
+	} else {
+		fcbArray[returnFd].read = 0;
+	}
+	if (flags & O_WRONLY || flags & O_RDWR) {
+		fcbArray[returnFd].write = 1;
+	} else {
+		fcbArray[returnFd].write = 0;
+	}
+	fcbArray[returnFd].unusedBlock = 0;
 
-	printf("b_open allocation = %d\n", fcbArray[returnFd].totalAllocated);
+	printf("b_open name %s\n", filename);
 	printf("b_open locationEnd location = %d %d\n", fcbArray[returnFd].locationEnd, fcbArray[returnFd].location);
+	printf("b_open file->location = %d\n", fcbArray[returnFd].file->location);
 	
 	free(dir);
 	return (returnFd); // all set
@@ -240,26 +205,58 @@ int b_write (b_io_fd fd, char * buffer, int count)
 		return (-1); 					//invalid file descriptor
 		}
 		
-	if (!(fcbArray[fd].flags & O_WRONLY || fcbArray[fd].flags & O_RDWR)) {
+	if (fcbArray[fd].write != 1) {
 		return -1;
 	}
 
+	int block = fcbArray[fd].unusedBlock;
+	if (block < 10) {
+		block = freespaceAllocateBlocks(fcbArray[fd].locationEnd, WRITEBLOCK);
+		if (block == 0)
+			return 0;
+		fcbArray[fd].locationEnd = freespaceEndBlock(fcbArray[fd].location);
+		fcbArray[fd].unusedBlock += block;
+	}
+
+	int remainder, blockCnt, leftover, last, location;
+	remainder = fsvcb->blockSize - fcbArray[fd].file->fileSize % fsvcb->blockSize;
+
+	if (remainder < count) {
+		leftover = count - remainder;
+		blockCnt = leftover / fsvcb->blockSize;
+		last = leftover % fsvcb->blockSize;
+
+		memcpy(fcbArray[fd].buffer + fcbArray[fd].file->fileSize % fsvcb->blockSize, buffer, remainder);
+		location = freespaceNextBlock(fcbArray[fd].location);
+		fcbArray[fd].location = location;
+		LBAwrite(fcbArray[fd].buffer, 1, location);
+
+		fcbArray[fd].unusedBlock -= 1;
+
+		for(int i = 0; i < blockCnt; i++) {
+			location = freespaceNextBlock(fcbArray[fd].location);
+			fcbArray[fd].location = location;
+			LBAwrite(buffer + i * fsvcb->blockSize, 1, location);
+		}
+
+		fcbArray[fd].unusedBlock -= blockCnt;
+
+		if (last > 0) {
+			memcpy(fcbArray[fd].buffer, buffer + remainder + blockCnt * fsvcb->blockSize, last);
+		}
+
+		fcbArray[fd].file->fileSize += remainder + blockCnt * fsvcb->blockSize + last;
+
+		return remainder + blockCnt * fsvcb->blockSize + last;
+	} else {
+		memcpy(fcbArray[fd].buffer + fcbArray[fd].file->fileSize % fsvcb->blockSize, buffer, count);
+		fcbArray[fd].file->fileSize += count;
+		return count;
+	}
+
+	
+
 	/*
-	similar to b_read
-
-	part 1 write to the remaining block
-	part 2 write the blocks
-	part 3 write the remaining on the new block
-
-	give them a big number number like 50 blocks
-	*/
-
-	int block = 50;
-	block = freespaceAllocateBlocks(fcbArray[fd].location, block);
-
-	if (block == 0)
-		return 0;
-
 	if (count + fcbArray[fd].fileOffset > fcbArray[fd].file->fileSize)
 		count = fcbArray[fd].file->fileSize - fcbArray[fd].fileOffset;
 
@@ -319,6 +316,7 @@ int b_write (b_io_fd fd, char * buffer, int count)
 	fcbArray[fd].totalAllocated = freespaceTotalAllocated(freespaceNextBlock(fcbArray[fd].location));
 
 	return part1 + part2 + part3;
+	*/
 	}
 
 
@@ -353,35 +351,18 @@ int b_read (b_io_fd fd, char * buffer, int count)
 		return (-1); 					//invalid file descriptor
 		}
 
-	if (!(fcbArray[fd].flags & O_RDONLY || fcbArray[fd].flags & O_RDWR)) {
+	if (fcbArray[fd].read != 1) {
 		return -1;
 	}
-
-	if (fcbArray[fd].totalAllocated == 0) {
-		return 0;
-	}
-	/*
-	count
-	count > remainder
-	part 1 = remainder
-	leftover = count - part 1
-	blockCnt = leftover / fsvcb->blockSize
-	part 2 = blockCnt * fsvcb->blockSize
-	part 3 = leftover - part 2
-
-	part 1 fill up your buffer to the remainder
-	part 2 fill directly to the caller's buffer
-	part 3 fill up your buffer again with new index
-	*/
 
 	if (count + fcbArray[fd].fileOffset > fcbArray[fd].file->fileSize) {
 		count = fcbArray[fd].file->fileSize - fcbArray[fd].fileOffset;
 	}
 
 	// remainder in the block B_CHUNK_SIZE - current index
-	int currentBlock = fcbArray[fd].fileOffset / fsvcb->blockSize;
 	int remainder = fsvcb->blockSize - fcbArray[fd].fileOffset % fsvcb->blockSize;
 	int part1, part2, part3, leftover, blockCnt, read, location;
+	
 	if (count > remainder) {
 		part1 = remainder;
 		leftover = count - part1;
@@ -389,9 +370,9 @@ int b_read (b_io_fd fd, char * buffer, int count)
 		part2 = blockCnt * fsvcb->blockSize;
 		part3 = leftover - part2;
 	} else {
-		part1 = count;
+		part1 = 0;
 		part2 = 0;
-		part3 = 0;
+		part3 = count;
 	}
 
 	if (part1 > 0) {
@@ -412,7 +393,9 @@ int b_read (b_io_fd fd, char * buffer, int count)
 	}
 
 	if (part3 > 0) {
-		read = LBAread(fcbArray[fd].buffer, 1, fcbArray[fd].location);
+		location = freespaceNextBlock(fcbArray[fd].location);
+		fcbArray[fd].location = location;
+		read = LBAread(fcbArray[fd].buffer, 1, location);
 		read = read * fsvcb->blockSize;
 		if (read < part3) {
 			part3 = read;
@@ -432,6 +415,30 @@ int b_close (b_io_fd fd)
 	{
 		if (fcbArray[fd].buffer == NULL) {
 			return -1;
+		}
+
+		/*
+		writing last block
+		flush buffer?
+		*/
+
+		if (fcbArray[fd].write == 1) {
+			LBAwrite(fcbArray[fd].buffer, 1, freespaceNextBlock(fcbArray[fd].locationEnd));
+			fcbArray[fd].unusedBlock -= 1;
+			int begin = fcbArray[fd].file->location;
+			int total = fcbArray[fd].unusedBlock;
+			printf("b_close total %d\n", total);
+			while (total != 0) {
+				begin = freespaceNextBlock(begin);
+				total -= 1;
+			}
+			freespaceReleaseBlocks(begin);
+			dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
+			int index = parsePath(fcbArray[fd].file->pathname, currentwd, dir);
+			dir[index].size = fcbArray[fd].file->fileSize;
+			LBAwrite(dir, (dir[0].size + fsvcb->blockSize - 1) / fsvcb->blockSize, dir[0].location);
+			dirEntryLoad(currentwd, currentwd);
+			free(dir);
 		}
 		
 		free(fcbArray[fd].buffer);

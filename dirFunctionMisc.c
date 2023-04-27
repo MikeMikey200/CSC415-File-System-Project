@@ -71,7 +71,7 @@ char *fs_getcwd(char *pathname, size_t size) {
     int index = 0;
     while(dir[0].location != rootDir[0].location) {
         location = dir[0].location;
-        LBAread(dir, dir[1].size / fsvcb->blockSize, dir[1].location);
+        LBAread(dir, (dir[1].size + fsvcb->blockSize - 1) / fsvcb->blockSize, dir[1].location);
         name = dirFindName(dir, location);
         
         index++;
@@ -178,7 +178,7 @@ int fs_delete(char* filename) {
     }
 
     strcpy(dir[index].name, "\0");
-    LBAwrite(dir, dir->size / fsvcb->blockSize, dir->location);
+    LBAwrite(dir, (dir->size + fsvcb->blockSize - 1) / fsvcb->blockSize, dir->location);
     dirEntryLoad(currentwd, currentwd);
 
     freespaceReleaseBlocks(dir[index].location);
@@ -207,7 +207,7 @@ int fs_stat(const char *path, struct fs_stat *buf) {
 
     buf->st_size = dir[index].size;
     buf->st_blksize = fsvcb->blockSize;
-    buf->st_blocks = dir[index].size / fsvcb->blockSize;
+    buf->st_blocks = (dir[index].size + fsvcb->blockSize - 1) / fsvcb->blockSize;
     buf->st_createtime = mktime(&dir[index].timeCreate);
     buf->st_modtime = mktime(&dir[index].timeModify);
     buf->st_accesstime = mktime(&dir[index].timeAccess);

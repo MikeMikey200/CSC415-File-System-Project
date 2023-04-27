@@ -9,12 +9,13 @@
 #include "fat.h"
 #include "fsLow.h"
 
-fileInfo * GetFileInfo (char * fname, dirEntry * parent) {
+fileInfo * GetFileInfo (char * fname, char * path, dirEntry * parent) {
     fileInfo *finfo = malloc(sizeof(fileInfo));
 
-    int size = parent->size / fsvcb->blockSize;
+    int size = parent->size / sizeof(dirEntry);
     for (int i = 2; i < size; i++) {
         if (strcmp(parent[i].name, fname) == 0) {
+            strcpy(finfo->pathname, path);
             strcpy(finfo->fileName, fname);
             finfo->fileSize = parent[i].size;
             finfo->location = freespaceNextBlock(parent[i].location);
@@ -26,7 +27,7 @@ fileInfo * GetFileInfo (char * fname, dirEntry * parent) {
     return NULL;
 }
 
-fileInfo *FileInit(char *fname, dirEntry *parent) {
+fileInfo *FileInit(char *fname, char * path, dirEntry *parent) {
     int i = dirFindUnusedEntry(parent);
     if (i == -1) {
         return NULL;
@@ -44,6 +45,7 @@ fileInfo *FileInit(char *fname, dirEntry *parent) {
     
     fileInfo *finfo = malloc(sizeof(fileInfo));
 
+    strcpy(finfo->pathname, path);
     strcpy(finfo->fileName, fname);
     finfo->fileSize = parent[i].size;
     finfo->location = freespaceNextBlock(parent[i].location);
