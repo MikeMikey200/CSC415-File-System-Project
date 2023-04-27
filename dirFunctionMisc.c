@@ -1,3 +1,19 @@
+/**************************************************************
+* Class: CSC-415-03 Spring 2023
+* Names: Minh Dang, Sabrina Diaz-Erazo, Trinity Godwin
+* Student IDs: 921210261, 916931527, 918448783
+* GitHub Name: MikeMikey200
+* Group Name: Wanna Cry
+* Project: Basic File System
+*
+* File: dirFunctionMisc.c
+*
+* Description: This file contains the following miscellaneous
+*              directory functions: fs_setcwd, fs_getcwd,
+*              fs_isDir, fs_isFile, fs_delete, and fs_stat.
+*
+**************************************************************/
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
