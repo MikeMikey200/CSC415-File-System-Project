@@ -39,7 +39,6 @@ typedef struct b_fcb
 	int fileOffset;		//holds the current position in the buffer
 	int location;
 	int locationEnd;
-	int buflen;			//size of current text block
 	int read;
 	int write;
 	int unusedBlock;
@@ -227,22 +226,20 @@ int b_write (b_io_fd fd, char * buffer, int count)
 		last = leftover % fsvcb->blockSize;
 
 		memcpy(fcbArray[fd].buffer + fcbArray[fd].file->fileSize % fsvcb->blockSize, buffer, remainder);
-		location = freespaceNextBlock(fcbArray[fd].location);
-		fcbArray[fd].location = location;
-		LBAwrite(fcbArray[fd].buffer, 1, location);
+		fcbArray[fd].location = freespaceNextBlock(fcbArray[fd].location);
+		LBAwrite(fcbArray[fd].buffer, 1, fcbArray[fd].location);
 
 		fcbArray[fd].unusedBlock -= 1;
 
 		for(int i = 0; i < blockCnt; i++) {
-			location = freespaceNextBlock(fcbArray[fd].location);
-			fcbArray[fd].location = location;
-			LBAwrite(buffer + i * fsvcb->blockSize, 1, location);
+			fcbArray[fd].location = freespaceNextBlock(fcbArray[fd].location);
+			LBAwrite(buffer + i * fsvcb->blockSize, 1, fcbArray[fd].location);
 		}
 
 		fcbArray[fd].unusedBlock -= blockCnt;
 
 		if (last > 0) {
-			memcpy(fcbArray[fd].buffer, buffer + remainder + blockCnt * fsvcb->blockSize, last);
+			memcpy(fcbArray[fd].buffer, buffer + leftover + blockCnt * fsvcb->blockSize, last);
 		}
 
 		fcbArray[fd].file->fileSize += remainder + blockCnt * fsvcb->blockSize + last;
@@ -253,7 +250,6 @@ int b_write (b_io_fd fd, char * buffer, int count)
 		fcbArray[fd].file->fileSize += count;
 		return count;
 	}
-
 	
 
 	/*
@@ -368,14 +364,22 @@ int b_read (b_io_fd fd, char * buffer, int count)
 		leftover = count - part1;
 		blockCnt = leftover / fsvcb->blockSize;
 		part2 = blockCnt * fsvcb->blockSize;
-		part3 = leftover - part2;
+		part3 = leftover % fsvcb->blockSize;
 	} else {
-		part1 = 0;
+		part1 = count;
 		part2 = 0;
-		part3 = count;
+		part3 = 0;
 	}
 
 	if (part1 > 0) {
+		if (fcbArray[fd].fileOffset == 0) {
+			location = freespaceNextBlock(fcbArray[fd].location);
+			fcbArray[fd].location = location;
+			read = LBAread(fcbArray[fd].buffer, 1, location);
+			if (read != 1) {
+				return 0;
+			}
+		}
 		memcpy(buffer, fcbArray[fd].buffer + fcbArray[fd].fileOffset % fsvcb->blockSize, part1);
 		fcbArray[fd].fileOffset += part1;
 	}
@@ -426,7 +430,7 @@ int b_close (b_io_fd fd)
 			LBAwrite(fcbArray[fd].buffer, 1, freespaceNextBlock(fcbArray[fd].locationEnd));
 			fcbArray[fd].unusedBlock -= 1;
 			int begin = fcbArray[fd].file->location;
-			int total = fcbArray[fd].unusedBlock;
+			int total = freespaceTotalAllocated(begin) - fcbArray[fd].unusedBlock;
 			printf("b_close total %d\n", total);
 			while (total != 0) {
 				begin = freespaceNextBlock(begin);
