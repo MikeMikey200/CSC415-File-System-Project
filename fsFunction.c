@@ -12,6 +12,7 @@
 fileInfo * GetFileInfo (char * fname, char * path, dirEntry * parent) {
     fileInfo *finfo = malloc(sizeof(fileInfo));
 
+    //find the file in the directories
     int size = parent->size / sizeof(dirEntry);
     for (int i = 2; i < size; i++) {
         if (strcmp(parent[i].name, fname) == 0) {
@@ -28,6 +29,7 @@ fileInfo * GetFileInfo (char * fname, char * path, dirEntry * parent) {
 }
 
 fileInfo *FileInit(char *fname, char * path, dirEntry *parent) {
+    //check for unused entry in the directory
     int i = dirFindUnusedEntry(parent);
     if (i == -1) {
         return NULL;
@@ -35,6 +37,8 @@ fileInfo *FileInit(char *fname, char * path, dirEntry *parent) {
 
     dirEntry * fileEntry = dirInit(0, parent);
     fileEntry->type = 1;
+
+    //writing new information in the parent directory and updating the current/parent directory
     dirEntryCopy(parent, fileEntry, i, fname);
     if (parent->location != currentwd->location) {
         dirEntryLoad(parent, parent);
@@ -45,9 +49,11 @@ fileInfo *FileInit(char *fname, char * path, dirEntry *parent) {
     
     fileInfo *finfo = malloc(sizeof(fileInfo));
 
+    //putting in the inodes informations
     strcpy(finfo->pathname, path);
     strcpy(finfo->fileName, fname);
     finfo->fileSize = parent[i].size;
     finfo->location = freespaceNextBlock(parent[i].location);
+    
     return finfo;
 }

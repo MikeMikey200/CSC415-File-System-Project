@@ -39,12 +39,14 @@ int fs_setcwd(char *pathname) {
         index = parsePath(pathname, currentwd, dir);
     }
 
+    //item must exist in order to change directory
     if (index == -1) {
         free(dir);
         dir = NULL;
         return -1;
     }
 
+    //item is found but it has to be a directory
     if (dir[index].type == 0) {
         dirEntryLoadIndex(currentwd, dir, index);
     } else {
@@ -68,6 +70,7 @@ char *fs_getcwd(char *pathname, size_t size) {
         return 0;
     }
 
+    //temporary directory
     dirEntryLoad(dir, currentwd);
     
     pathname = malloc(size * sizeof(char));
@@ -84,6 +87,7 @@ char *fs_getcwd(char *pathname, size_t size) {
     char *name;
     unsigned int location;
 
+    //continues all the way until reaching the root directory
     int index = 0;
     while(dir[0].location != rootDir[0].location) {
         location = dir[0].location;
@@ -98,6 +102,7 @@ char *fs_getcwd(char *pathname, size_t size) {
             return NULL;
         }
 
+        //concatening file name to make it after the parent directory by swapping between 2 strings
         strcat(pathname, "\\");
         strcat(pathname, name);
         strcat(pathname, str);
@@ -193,10 +198,12 @@ int fs_delete(char* filename) {
         return -1;
     }
 
+    //marking the directory as unused and updating the information
     strcpy(dir[index].name, "\0");
     LBAwrite(dir, (dir->size + fsvcb->blockSize - 1) / fsvcb->blockSize, dir->location);
     dirEntryLoad(currentwd, currentwd);
 
+    //releasing the used blocks
     freespaceReleaseBlocks(dir[index].location);
 
     free(dir);
@@ -221,6 +228,7 @@ int fs_stat(const char *path, struct fs_stat *buf) {
         index = parsePath(str, currentwd, dir);
     }
 
+    //initializing the information
     buf->st_size = dir[index].size;
     buf->st_blksize = fsvcb->blockSize;
     buf->st_blocks = (dir[index].size + fsvcb->blockSize - 1) / fsvcb->blockSize;

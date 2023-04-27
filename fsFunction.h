@@ -4,7 +4,7 @@
 #define WRITEBLOCK 50
 
 typedef struct fileInfo {
-	char pathname[MAXPATH];
+	char pathname[MAXPATH];	//pathname
 	char fileName[64];		//filename
 	int fileSize;			//file size in bytes
 	int location;			//starting lba (block number) for the file data

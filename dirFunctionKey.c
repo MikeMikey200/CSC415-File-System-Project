@@ -62,11 +62,13 @@ int fs_mkdir(const char *pathname, mode_t mode) {
     char *delim = "\\";
     char *token = strtok_r(str, delim, &saveptr);
     
+    //saving the last token as the name for the file
     while (token != NULL) {
         tokenPrev = token;
         token = strtok_r(NULL, delim, &saveptr);
     }
     
+    //writing and updating the new name in the parent and update the current directory
     dirEntryCopy(dir, item, index, tokenPrev);
     dirEntryLoad(currentwd, currentwd);
 
@@ -102,6 +104,7 @@ int fs_rmdir(const char *pathname) {
 
     dirEntryLoadIndex(dir, dir, index);
 
+    //checking inside the directory if there is any used entries
     int size = dir->size / sizeof(dirEntry);
     for (int i = 2; i < size; i++) {
         if (dir[i].name[0] != '\0') {
@@ -113,6 +116,7 @@ int fs_rmdir(const char *pathname) {
 
     dirEntryLoadIndex(dir, dir, 1);
 
+    //marking the directory as unused and update
     strcpy(dir[index].name, "\0");
     LBAwrite(dir, (dir->size + fsvcb->blockSize - 1) / fsvcb->blockSize, dir->location);
     dirEntryLoad(currentwd, currentwd);

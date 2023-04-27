@@ -36,12 +36,13 @@ typedef struct b_fcb
 	/** TODO add al the information you need in the file control block **/
 	fileInfo *file;
 	char * buffer;		//holds the open file buffer
-	int fileOffset;		//holds the current position in the buffer
-	int location;
-	int locationEnd;
-	int read;
-	int write;
-	int unusedBlock;
+	int fileOffset;		//holds the current position in the file
+	int location;		//location in the LBA
+	int locationEnd;	//endlocation in the LBA
+	int read;			//permission to read
+	int write;			//permission to write
+	int unusedBlock;	//amount of block that needed to be released
+	int startup;		//the start of the file used for reading
 	} b_fcb;
 	
 b_fcb fcbArray[MAXFCBS];
@@ -97,6 +98,7 @@ b_io_fd b_open (char * filename, int flags)
 
 	int index;
 
+	//find the given filename
 	if (str[0] == '\\') {
         index = parsePath(str, rootDir, dir);
     } else {
@@ -108,6 +110,7 @@ b_io_fd b_open (char * filename, int flags)
     char *delim = "\\";
     char *token = strtok_r(str, delim, &saveptr);
     
+	//grabbing the last token in the filename if given with \ character
     while (token != NULL) {
         tokenPrev = token;
         token = strtok_r(NULL, delim, &saveptr);
@@ -115,7 +118,9 @@ b_io_fd b_open (char * filename, int flags)
 
 	fileInfo *finfo;
 
+	//index -1 mean not found in all the directories and the current directory
 	if (index == -1) {
+		//if it was given permission to create and write it will create a new file otherwise determined an error
 		if (flags & O_CREAT && (flags & O_WRONLY || flags & O_RDWR)) {
 			finfo = FileInit (tokenPrev, filename, dir);
 		} else {
@@ -123,6 +128,7 @@ b_io_fd b_open (char * filename, int flags)
 			return -1;
 		}
 	} else {
+		//grab file inodes from the parsepath directory parent
 		finfo = GetFileInfo(tokenPrev, filename, dir);
 
 		if (finfo == NULL) {
@@ -134,17 +140,23 @@ b_io_fd b_open (char * filename, int flags)
 	// get our own file descriptor
 	returnFd = b_getFCB();	
 
+	//intializing b_fcb structure
 	fcbArray[returnFd].file = finfo;
+
+	//release all blocks if truncating and setting filesize back to 0
 	if (flags & O_TRUNC && (flags & O_WRONLY || flags & O_RDWR)) {
 		fcbArray[returnFd].file->fileSize = 0;
 		if (freespaceFindFreeBlock(fcbArray[returnFd].file->location) != 0) {
 			freespaceReleaseBlocks(freespaceNextBlock(fcbArray[returnFd].file->location));
 		}
 	}
+
 	fcbArray[returnFd].buffer = malloc(fsvcb->blockSize * sizeof(char));
 	if (fcbArray[returnFd].buffer == NULL) {
 		return -1;
 	}
+
+	//move the offset to the end of the file otherwise the start of the file
 	if (flags & O_APPEND) {
 		fcbArray[returnFd].fileOffset = fcbArray[returnFd].file->fileSize;
 	} else {
@@ -152,6 +164,8 @@ b_io_fd b_open (char * filename, int flags)
 	}
 	fcbArray[returnFd].location = fcbArray[returnFd].file->location;
 	fcbArray[returnFd].locationEnd = freespaceEndBlock(fcbArray[returnFd].file->location);
+
+	//initializing the given permissions of the flag for reading and writing
 	if (((flags + 1) & (O_RDONLY + 1)) || flags & O_RDWR) {
 		fcbArray[returnFd].read = 1;
 	} else {
@@ -163,6 +177,7 @@ b_io_fd b_open (char * filename, int flags)
 		fcbArray[returnFd].write = 0;
 	}
 	fcbArray[returnFd].unusedBlock = 0;
+	fcbArray[returnFd].startup = 0;
 	
 	free(dir);
 	return (returnFd); // all set
@@ -180,6 +195,12 @@ int b_seek (b_io_fd fd, off_t offset, int whence)
 		return (-1); 					//invalid file descriptor
 		}
 
+	/* from the lseek flags 
+	SEEK_SET - sets the file offset to the absolute value of the offset parameter.
+	SEEK_CUR - adds the value of offset to the current file offset.
+	SEEK_END - sets the file offset to the size of the file plus offset.
+	and if no valid flag return error
+	*/
 	if ((whence + 1) & (SEEK_SET + 1)) {
 		fcbArray[fd].fileOffset = offset;
 	} else if (whence & SEEK_CUR) {
@@ -190,7 +211,7 @@ int b_seek (b_io_fd fd, off_t offset, int whence)
 		return -1;
 	}
 		
-	return fcbArray[fd].fileOffset; //Change this
+	return fcbArray[fd].fileOffset;
 	}
 
 
@@ -210,6 +231,7 @@ int b_write (b_io_fd fd, char * buffer, int count)
 		return -1;
 	}
 
+	//initially give the writer 50 blocks and as it uses up the blocks to below 10, it will give another 50 blocks.
 	int block = fcbArray[fd].unusedBlock;
 	if (block < 10) {
 		block = freespaceAllocateBlocks(fcbArray[fd].locationEnd, WRITEBLOCK);
@@ -222,6 +244,14 @@ int b_write (b_io_fd fd, char * buffer, int count)
 	int remainder, blockCnt, leftover, last, location;
 	remainder = fsvcb->blockSize - fcbArray[fd].file->fileSize % fsvcb->blockSize;
 
+	/*
+	when count is higher than remainder do a split similar to b_read
+	part 1 fill up current buffer and write it
+	part 2 fill up as many blocks given from count amount caller's buffer directly to write
+	part 3 refill the buffer with 0 offset with the remaining
+
+	otherwise just fill the buffer with count
+	*/
 	if (remainder < count) {
 		leftover = count - remainder;
 		blockCnt = leftover / fsvcb->blockSize;
@@ -311,19 +341,26 @@ int b_read (b_io_fd fd, char * buffer, int count)
 		part3 = 0;
 	}
 
+	//remainder to fill up to
 	if (part1 > 0) {
-		if (fcbArray[fd].fileOffset == 0) {
-			location = freespaceNextBlock(fcbArray[fd].location);
-			fcbArray[fd].location = location;
-			read = LBAread(fcbArray[fd].buffer, 1, location);
+		//filling our buffer initially cause file just started
+		if (fcbArray[fd].startup == 0) {
+			if (fcbArray[fd].fileOffset == 0) {
+				fcbArray[fd].location = freespaceNextBlock(fcbArray[fd].location);
+				read = LBAread(fcbArray[fd].buffer, 1, fcbArray[fd].location);
+			} else {
+				read = LBAread(fcbArray[fd].buffer, 1, fcbArray[fd].location);
+			}
 			if (read != 1) {
 				return 0;
 			}
+			fcbArray[fd].startup = 1;
 		}
 		memcpy(buffer, fcbArray[fd].buffer + fcbArray[fd].fileOffset % fsvcb->blockSize, part1);
 		fcbArray[fd].fileOffset += part1;
 	}
 
+	//leftover blocks
 	if (part2 > 0) {
 		int temp = 0;
 		for (int i = 0; i < blockCnt; i++) {
@@ -336,6 +373,7 @@ int b_read (b_io_fd fd, char * buffer, int count)
 		fcbArray[fd].fileOffset += part2;
 	}
 
+	//remaining to refill
 	if (part3 > 0) {
 		location = freespaceNextBlock(fcbArray[fd].location);
 		fcbArray[fd].location = location;
@@ -361,11 +399,7 @@ int b_close (b_io_fd fd)
 			return -1;
 		}
 
-		/*
-		writing last block
-		flush buffer?
-		*/
-
+		//write the last block and free up the unused blocks
 		if (fcbArray[fd].write == 1) {
 			LBAwrite(fcbArray[fd].buffer, 1, freespaceNextBlock(fcbArray[fd].location));
 			fcbArray[fd].unusedBlock -= 1;
@@ -384,6 +418,7 @@ int b_close (b_io_fd fd)
 			free(dir);
 		}
 		
+		//free the fd in the fcbArray
 		free(fcbArray[fd].buffer);
 		fcbArray[fd].buffer = NULL;
 		fcbArray[fd].file = NULL;

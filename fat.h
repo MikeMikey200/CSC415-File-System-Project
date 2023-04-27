@@ -59,10 +59,13 @@ int freespaceAllocateBlocks(unsigned int startLocation, unsigned int blockNum);
 */
 int freespaceReleaseBlocks(unsigned int startLocation);
 
+// return the next pointer in the freespace
 unsigned int freespaceNextBlock(unsigned int location);
 
+// return the end block in the freespace
 unsigned int freespaceEndBlock(unsigned int location);
 
+// return the total amount of allocated blocks in the freespace
 unsigned int freespaceTotalAllocated(unsigned int location);
 
 #endif /* FAT_H */

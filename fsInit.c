@@ -61,6 +61,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		rootDir = malloc(dirEntryBlock * blockSize);
 		LBAread(rootDir, dirEntryBlock, vcbBlock + fatBlock);
 
+		//setting current working directory as the root
 		fs_setcwd("\\");
 		return 0;
 	}
@@ -86,6 +87,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	rootDir = dirInit(INITENTRIES, NULL);
 	
+	//setting current working directory as the root
 	fs_setcwd("\\");
 	return 0;
 	}
