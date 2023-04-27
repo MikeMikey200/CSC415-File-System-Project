@@ -311,7 +311,13 @@ int b_write (b_io_fd fd, char * buffer, int count)
 			fcbArray[fd].fileOffset += part3;
 		}
 	}
-		
+
+	if (freespaceFindFreeBlock(fcbArray[fd].location) != 0)
+			freespaceReleaseBlocks(freespaceNextBlock(fcbArray[fd].location));
+
+	fcbArray[fd].locationEnd = freespaceEndBlock(fcbArray[fd].location);
+	fcbArray[fd].totalAllocated = freespaceTotalAllocated(freespaceNextBlock(fcbArray[fd].location));
+
 	return part1 + part2 + part3;
 	}
 
