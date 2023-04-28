@@ -11,7 +11,9 @@
 * Description: This file contains the parsePath function, which
 *			   takes in a pathname, parses it until the last 
 *			   tokenized string and checks if it exists or not 
-*			   in our directory.
+*			   in our directory. It also contains the function
+*			   locateEntry, which locates the entry using an index
+*			   to traverse the directory to find the name.
 *
 **************************************************************/
 
