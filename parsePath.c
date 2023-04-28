@@ -1,3 +1,20 @@
+/**************************************************************
+* Class: CSC-415-03 Spring 2023
+* Names: Minh Dang, Sabrina Diaz-Erazo, Trinity Godwin
+* Student IDs: 921210261, 916931527, 918448783
+* GitHub Name: MikeMikey200
+* Group Name: Wanna Cry
+* Project: Basic File System
+*
+* File: parsePath.c
+*
+* Description: This file contains the parsePath function, which
+*			   takes in a pathname, parses it until the last 
+*			   tokenized string and checks if it exists or not 
+*			   in our directory.
+*
+**************************************************************/
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
