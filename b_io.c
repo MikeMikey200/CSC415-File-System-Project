@@ -399,6 +399,13 @@ int b_close (b_io_fd fd)
 			return -1;
 		}
 
+		time_t timer;
+    	timer = time(NULL);
+
+		dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
+		int index = parsePath(fcbArray[fd].file->pathname, currentwd, dir);
+		localtime_r(&timer, &dir[index].timeAccess);
+
 		//write the last block and free up the unused blocks
 		if (fcbArray[fd].write == 1) {
 			LBAwrite(fcbArray[fd].buffer, 1, freespaceNextBlock(fcbArray[fd].location));
@@ -410,14 +417,13 @@ int b_close (b_io_fd fd)
 				total -= 1;
 			}
 			freespaceReleaseBlocks(begin);
-			dirEntry *dir = malloc(BLOCK(sizeof(dirEntry), MAXENTRIES, fsvcb->blockSize) * fsvcb->blockSize);
-			int index = parsePath(fcbArray[fd].file->pathname, currentwd, dir);
 			dir[index].size = fcbArray[fd].file->fileSize;
+			dir[index].timeModify = dir[index].timeAccess;
 			LBAwrite(dir, (dir[0].size + fsvcb->blockSize - 1) / fsvcb->blockSize, dir[0].location);
 			dirEntryLoad(currentwd, currentwd);
-			free(dir);
 		}
 		
+		free(dir);
 		//free the fd in the fcbArray
 		free(fcbArray[fd].buffer);
 		fcbArray[fd].buffer = NULL;
