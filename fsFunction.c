@@ -1,3 +1,19 @@
+/**************************************************************
+* Class: CSC-415-03 Spring 2023
+* Names: Minh Dang, Sabrina Diaz-Erazo, Trinity Godwin
+* Student IDs: 921210261, 916931527, 918448783
+* GitHub Name: MikeMikey200
+* Group Name: Wanna Cry
+* Project: Basic File System
+*
+* File: fsFunction.c
+*
+* Description: This file contains the functions GetFileInfo
+*              and FileInit, which helps b_open, the interface
+*              to open a buffered file.
+*
+**************************************************************/
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
